@@ -1,0 +1,14 @@
+{
+  "name": "simetricdb",
+  "version": "1.0.0",
+  "main": "simetricdb/main.js",
+  "scripts": {
+    "start": "electron ."
+  },
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "devDependencies": {
+    "electron": "^35.2.0"
+  }
+}
