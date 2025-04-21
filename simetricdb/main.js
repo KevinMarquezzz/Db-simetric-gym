@@ -2,11 +2,11 @@ const {app, BrowserWindow} = require('electron');
 
     function createWindow (){
         const win = new BrowserWindow({
-            width: 768,
-            height: 560
+            width: 826,
+            height: 620
         });
 
-        win.loadFile('simetricdb/index.html')
+        win.loadFile('simetricdb/inicio.html')
     }
 
     app.whenReady().then(createWindow);
