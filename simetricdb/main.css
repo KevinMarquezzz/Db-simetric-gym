@@ -6,7 +6,70 @@
 }
 
 body{
-    background-color: #ffffff;
     padding: 1.5rem;
+    padding: 0;
+    margin: 0;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
     
+}
+
+header{
+    width: 100%;    
+    background-color: #121212;
+    border-bottom: 5px;
+    border-top: 0px;
+    border-left: 0px;
+    border-right: 0px;
+    padding: 10px;
+    border-color: #880808;
+    display: flex;
+    border-style: solid;
+}
+
+header #mainttl{
+    padding-top: 10px;
+    color: #f2f3d9;
+    font-size: 2rem;
+    width: 50%;
+}
+header .img{
+    width: 50%;
+    display: flex;
+    justify-content: right;
+}
+main{
+background: linear-gradient(to top, #11111199 50%, #12121299 50%), url(resources/ej_bg3.jpg);
+background-size: cover;
+background-position: center;
+width: 100%;
+display: flex;
+justify-content: center;
+align-items: center;
+flex-grow: 1;
+
+}
+main .btns{
+    display: flex;
+    flex-direction: column;
+}
+main .btns button{
+    padding: 20px;
+    margin: 20px;
+    background-color: #880808;
+    color: #f2f3d9;
+    font-weight: bolder;
+    font-size: 1.5rem;
+    border-radius: 5px;
+    border-style: unset;
+    transition: 0.5s ease;
+}
+.btns button:hover{
+    cursor: pointer;
+    color: #ffffff;
+    background-color: #ff1c1c;
+}
+.btns button:active{
+    transform: scale(0.9);
 }
