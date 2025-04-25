@@ -23,21 +23,25 @@ header{
     border-left: 0px;
     border-right: 0px;
     padding: 10px;
+    padding-top: 20px;
+    padding-bottom: 20px;
     border-color: #880808;
     display: flex;
+    align-items: center;
+    justify-content: center;
     border-style: solid;
+    position: relative;
+}
+header .img{
+    position: absolute;
+    right: 0;
+    padding: 1rem;
 }
 
 header #mainttl{
-    padding-top: 10px;
     color: #f2f3d9;
     font-size: 2rem;
-    width: 50%;
-}
-header .img{
-    width: 50%;
-    display: flex;
-    justify-content: right;
+    
 }
 main{
 background: linear-gradient(to top, #11111199 50%, #12121299 50%), url(resources/ej_bg3.jpg);
@@ -64,6 +68,7 @@ main .btns button{
     border-radius: 5px;
     border-style: unset;
     transition: 0.5s ease;
+    width: 280px;
 }
 .btns button:hover{
     cursor: pointer;
