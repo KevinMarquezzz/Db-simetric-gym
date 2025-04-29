@@ -1,0 +1,80 @@
+*{
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: sans-serif;
+}
+#client-list {
+    background: linear-gradient(to top, #11111199 50%, #12121299 50%), url(resources/ej_bg3.jpg);
+    background-size: cover;
+    background-position: center;
+    width: 100%;
+    min-height: 100vh;
+    padding: 2rem;
+    display: flex;
+    flex-direction: column;
+}
+
+.list-header {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.list-header h2 {
+    color: #f2f3d9;
+    margin-bottom: 1rem;
+}
+
+.filters {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.filters input, .filters select {
+    padding: 0.5rem;
+    border-radius: 5px;
+    border: 1px solid #880808;
+    background-color: #1e1e1e;
+    color: #f2f3d9;
+}
+
+.list-body {
+    background-color: #121212;
+    border-radius: 10px;
+    padding: 1rem;
+    max-height: 50vh;
+    color: #f2f3d9;
+    overflow-y: auto;
+    box-shadow: 0 0 10px #880808;
+}
+.table-header, .table-row {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid #333;
+    align-items: center;
+    text-align: center;
+}
+
+.table-header {
+    font-weight: bold;
+    background-color: #1e1e1e;
+}
+
+.status-box {
+    width: 20px;
+    height: 20px;
+    margin: auto;
+    border-radius: 4px;
+}
+
+.vigente {
+    background-color: green;
+}
+
+.vencido {
+    background-color: gray;
+}
+
