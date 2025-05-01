@@ -25,7 +25,50 @@
       
         <div class="list-body" id="client-container">
         </div>
-    </section>
+    </section> 
+    <div id="popup-detalles" class="popup oculto">
+      <div class="popup-contenido">
+        <span class="cerrar-popup" id="cerrar-popup">&times;</span>
+        <h3>Detalles del Cliente</h3>
+        <form id="form-editar-cliente">
+          <label>Nombre:</label>
+          <input type="text" id="detalle-nombre" required>
+      
+          <label>Cédula:</label>
+          <input type="text" id="detalle-cedula" required>
+      
+          <label>Teléfono:</label>
+          <input type="text" id="detalle-telefono" required>
+      
+          <label>Dirección:</label>
+          <input type="text" id="detalle-direccion" required>
+      
+          <label>Membresía:</label>
+          <select id="detalle-membresia">
+            <option value="plan mensual">Plan mensual</option>
+            <option value="diario">Diario</option>
+            <option value="semanal">Semanal</option>
+            <option value="especial">Especial</option>
+            <option value="parejas">Parejas</option>
+            <option value="familiar">Familiar</option>
+            <option value="estudiantil">Estudiantil</option>
+          </select>
+      
+          <label>Fecha de Registro:</label>
+          <span id="detalle-registro"></span>
+      
+          <label>Fecha de Vencimiento:</label>
+          <span id="detalle-vencimiento"></span>
+      
+          <div style="margin-top: 10px;">
+            <button type="submit">Guardar Cambios</button>
+            <button type="button" id="eliminar-cliente">Eliminar</button>
+            <button type="button" id="cerrar-popup">Cerrar</button>
+          </div>
+        </form>
+      </div>
+    </div>
+    
 <script src="mostrarClientes.js"></script>
 </body>
 </html>

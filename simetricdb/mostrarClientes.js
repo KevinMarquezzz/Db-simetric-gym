@@ -9,6 +9,7 @@ let db = new sqlite3.Database('simetricdb.sqlite', (err) => {
     mostrarClientes();
   }
 });
+let clienteIdSeleccionado = null;
 
 // Función para mostrar los clientes
 function mostrarClientes() {
@@ -56,9 +57,82 @@ function mostrarClientes() {
         <div>${cliente.fecha_registro}</div>
         <div>${cliente.fecha_vencimiento}</div>
         <div><div class="status-box ${estadoClase}"></div></div>
+        <div><button class="ver-detalles" data-id="${cliente.id}">Detalles</button></div>
       `;
 
       container.appendChild(row);
     });
   });
 }
+// Delegamos evento después de renderizar los botones
+document.addEventListener('click', function (event) {
+  if (event.target.classList.contains('ver-detalles')) {
+    const id = event.target.dataset.id;
+    clienteIdSeleccionado = id;
+
+    db.get('SELECT * FROM clientes WHERE id = ?', [id], (err, cliente) => {
+      if (err) {
+        console.error('Error al obtener detalles:', err.message);
+        return;
+      }
+
+      if (cliente) {
+        document.getElementById('detalle-nombre').value = cliente.nombre;
+        document.getElementById('detalle-cedula').value = cliente.cedula;
+        document.getElementById('detalle-telefono').value = cliente.telefono;
+        document.getElementById('detalle-direccion').value = cliente.direccion;
+        document.getElementById('detalle-membresia').value = cliente.membresia;
+        document.getElementById('detalle-registro').textContent = cliente.fecha_registro;
+        document.getElementById('detalle-vencimiento').textContent = cliente.fecha_vencimiento;
+
+        document.getElementById('popup-detalles').classList.remove('oculto');
+      }
+    });
+  }
+});
+
+// Cerrar popup
+document.getElementById('cerrar-popup').addEventListener('click', () => {
+  document.getElementById('popup-detalles').classList.add('oculto');
+});
+document.getElementById('form-editar-cliente').addEventListener('submit', function (e) {
+  e.preventDefault();
+
+  const nombre = document.getElementById('detalle-nombre').value.trim();
+  const cedula = document.getElementById('detalle-cedula').value.trim();
+  const telefono = document.getElementById('detalle-telefono').value.trim();
+  const direccion = document.getElementById('detalle-direccion').value.trim();
+  const membresia = document.getElementById('detalle-membresia').value;
+  
+
+  db.run(
+    `UPDATE clientes SET nombre = ?, cedula = ?, telefono = ?, direccion = ?, membresia = ? WHERE id = ?`,
+    [nombre, cedula, telefono, direccion, membresia, clienteIdSeleccionado],
+    function (err) {
+      if (err) {
+        console.error(err.message);
+        alert('Error al actualizar cliente.');
+      } else {
+        alert('Cliente actualizado exitosamente.');
+        document.getElementById('popup-detalles').classList.add('oculto');
+        mostrarClientes();
+      }
+    }
+  );
+});
+document.getElementById('eliminar-cliente').addEventListener('click', function () {
+  const confirmar = confirm('¿Estás seguro de que deseas eliminar este cliente?');
+
+  if (confirmar) {
+    db.run(`DELETE FROM clientes WHERE id = ?`, [clienteIdSeleccionado], function (err) {
+      if (err) {
+        console.error(err.message);
+        alert('Error al eliminar cliente.');
+      } else {
+        alert('Cliente eliminado correctamente.');
+        document.getElementById('popup-detalles').classList.add('oculto');
+        mostrarClientes();
+      }
+    });
+  }
+});
