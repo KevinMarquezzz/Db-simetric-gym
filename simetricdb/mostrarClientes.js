@@ -82,8 +82,8 @@ document.addEventListener('click', function (event) {
         document.getElementById('detalle-telefono').value = cliente.telefono;
         document.getElementById('detalle-direccion').value = cliente.direccion;
         document.getElementById('detalle-membresia').value = cliente.membresia;
-        document.getElementById('detalle-registro').textContent = cliente.fecha_registro;
-        document.getElementById('detalle-vencimiento').textContent = cliente.fecha_vencimiento;
+        document.getElementById('detalle-registro').value = cliente.fechaRegistro;
+        document.getElementById('detalle-vencimiento').textContent = cliente.fechaVencimiento;
 
         document.getElementById('popup-detalles').classList.remove('oculto');
       }
@@ -103,12 +103,33 @@ document.getElementById('form-editar-cliente').addEventListener('submit', functi
   const telefono = document.getElementById('detalle-telefono').value.trim();
   const direccion = document.getElementById('detalle-direccion').value.trim();
   const membresia = document.getElementById('detalle-membresia').value;
-  
-
+  const fechaRegistro =document.getElementById('detalle-registro').value;
+  let fechaVencimiento = new Date(fechaRegistro);
+  switch (membresia) {
+    case 'semanal':
+      fechaVencimiento.setDate(fechaVencimiento.getDate() + 7);
+      break;
+    case 'diario':
+      fechaVencimiento.setDate(fechaVencimiento.getDate() + 1);
+      break;
+    case 'mensual':
+    case 'familiar':
+    case 'estudiantil':
+    case 'especial':
+    case 'parejas':
+      fechaVencimiento.setMonth(fechaVencimiento.getMonth() + 1);
+      fechaVencimiento.setDate(fechaVencimiento.getDate() + 1);
+      break;
+    default:
+      console.warn('Tipo de membresía no reconocido. Se usará 1 mes por defecto.');
+      fechaVencimiento.setMonth(fechaVencimiento.getMonth() + 1);
+      fechaVencimiento.setDate(fechaVencimiento.getDate() + 1);
+  }
+  const fechaVencimientoFormateada = fechaVencimiento.toISOString().split('T')[0];
   db.run(
-    `UPDATE clientes SET nombre = ?, cedula = ?, telefono = ?, direccion = ?, membresia = ? WHERE id = ?`,
-    [nombre, cedula, telefono, direccion, membresia, clienteIdSeleccionado],
-    function (err) {
+    `UPDATE clientes SET nombre = ?, cedula = ?, telefono = ?, direccion = ?, membresia = ?, fecha_registro = ?, fecha_vencimiento = ? WHERE id = ?`,
+    [nombre, cedula, telefono, direccion, membresia, fechaRegistro, fechaVencimientoFormateada, clienteIdSeleccionado],
+    function (err) { 
       if (err) {
         console.error(err.message);
         alert('Error al actualizar cliente.');

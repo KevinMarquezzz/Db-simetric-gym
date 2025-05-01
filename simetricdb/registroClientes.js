@@ -32,39 +32,61 @@ document.querySelector('form').addEventListener('submit', (event) => {
   const fechaRegistro = document.getElementById('fecha').value;
 
   // Calculamos fecha de vencimiento: sumando un mes a la fecha de registro
-  const fechaVencimiento = calcularFechaVencimiento(fechaRegistro);
+  const fechaVencimiento = calcularFechaVencimiento(fechaRegistro, membresia);
+
 
   // Validar campos vacíos (opcionalmente más validaciones aquí)
 
   // Insertar cliente
-  db.run(`INSERT INTO clientes (nombre, cedula, membresia, telefono, direccion, fecha_registro, fecha_vencimiento)
-          VALUES (?, ?, ?, ?, ?, ?, ?)`,
-    [nombre, cedula, membresia, telefono, direccion, fechaRegistro, fechaVencimiento],
-    function (err) {
-      if (err) {
-        if (err.message.includes('UNIQUE')) {
-          alert('Error: ya existe un cliente con esa cédula.');
+  setTimeout(() => {
+    db.run(`INSERT INTO clientes (nombre, cedula, membresia, telefono, direccion, fecha_registro, fecha_vencimiento)
+            VALUES (?, ?, ?, ?, ?, ?, ?)`,
+      [nombre, cedula, membresia, telefono, direccion, fechaRegistro, fechaVencimiento],
+      function (err) {
+        if (err) {
+          if (err.message.includes('UNIQUE')) {
+            alert('Error: ya existe un cliente con esa cédula.');
+          } else {
+            console.error(err.message);
+            alert('Error al registrar cliente.');
+          }
         } else {
-          console.error(err.message);
-          alert('Error al registrar cliente.');
+          alert('Cliente registrado exitosamente.');
+          event.target.reset();
         }
-      } else {
-        alert('Cliente registrado exitosamente.');
-        // Opcional: limpiar el formulario manualmente si quieres
-        event.target.reset();
-      }
-    }
-  );
+      });
+  }, 100); // 100 milisegundos de respiro
 });
 
 // Función para sumar un mes
-function calcularFechaVencimiento(fecha) {
+function calcularFechaVencimiento(fecha, tipoMembresia) {
   const fechaObj = new Date(fecha);
-  fechaObj.setMonth(fechaObj.getMonth() + 1);
-  
+
+  switch (tipoMembresia.toLowerCase()) {
+    case 'diario':
+      fechaObj.setDate(fechaObj.getDate() + 2);
+      break;
+    case 'semanal':
+      fechaObj.setDate(fechaObj.getDate() + 8);
+      break;
+    case 'mensual':
+    case 'familiar':
+    case 'estudiantil':
+    case 'especial':
+    case 'parejas':
+      fechaObj.setMonth(fechaObj.getMonth() + 1);
+      fechaObj.setDate(fechaObj.getDate() + 2);
+      break;
+    default:
+      console.warn('Tipo de membresía no reconocido. Se usará 1 mes por defecto.');
+      fechaObj.setMonth(fechaObj.getMonth() + 1);
+      fechaObj.setDate(fechaObj.getDate() + 2);
+  }
+
   const year = fechaObj.getFullYear();
   const month = (fechaObj.getMonth() + 1).toString().padStart(2, '0');
   const day = fechaObj.getDate().toString().padStart(2, '0');
 
   return `${year}-${month}-${day}`;
 }
+
