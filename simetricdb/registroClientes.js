@@ -75,7 +75,7 @@ function calcularFechaVencimiento(fecha, tipoMembresia) {
     case 'especial':
     case 'parejas':
       fechaObj.setMonth(fechaObj.getMonth() + 1);
-      fechaObj.setDate(fechaObj.getDate() + 2);
+      fechaObj.setDate(fechaObj.getDate() + 1);
       break;
     default:
       console.warn('Tipo de membresía no reconocido. Se usará 1 mes por defecto.');
@@ -90,3 +90,10 @@ function calcularFechaVencimiento(fecha, tipoMembresia) {
   return `${year}-${month}-${day}`;
 }
 
+document.getElementById('cedula').addEventListener('input', (e) => {
+  e.target.value = e.target.value.replace(/\D/g, '');
+});
+
+document.getElementById('telefono').addEventListener('input', (e) => {
+  e.target.value = e.target.value.replace(/\D/g, '');
+});
