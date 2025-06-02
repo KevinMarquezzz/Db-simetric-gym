@@ -1,4 +1,4 @@
-const sqlite3 = require('sqlite3').verbose();
+/*const sqlite3 = require('sqlite3').verbose();
 const path = require('path');
 
 // Ruta a la base de datos (en la misma carpeta)
@@ -43,3 +43,4 @@ function agregarCliente(cliente, callback) {
 }
 
 module.exports = { agregarCliente };
+*/

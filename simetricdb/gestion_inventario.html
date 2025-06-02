@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Gestión de Inventario</title>
+    <link rel="stylesheet" href="gestion_inventario.css">
+</head>
+<body>
+  <header>
+    <h1 id="mainttl">SIMETRIC GYM</h1>
+    <div class="img">
+      <img src="resources/logo2_simetricG.png" height="60px" width="60px" alt="Logo">
+    </div>
+  </header>
+
+  <section id="inventory-list">
+    <div class="top">
+      <a href="menu_inventario.html" class="back_btn">
+        <button><img class="icon" src="resources/arrow_back_left_icon.png" alt="Volver" height="40px" width="40px"></button>
+      </a>
+
+      <div class="list-header">
+        <h2>Listado de Productos</h2>
+        <div class="filters">
+          <input type="text" id="search-code" placeholder="Buscar por código">
+        </div>
+      </div>
+
+      <div class="list-body" id="inventory-container">
+        <!-- Aquí se inyectarán dinámicamente las filas -->
+      </div>
+    </div>
+  </section>
+
+  <!-- POPUP DE DETALLES -->
+  <div id="popup-detalles-inv" class="popup oculto">
+    <div class="popup-contenido">
+      <span class="cerrar-popup" id="cerrar-popup-inv">&times;</span>
+      <h3>Detalles del Producto</h3>
+      <form id="form-editar-producto">
+        <label>Código:</label>
+        <input type="text" id="detalle-codigo" disabled>
+
+        <label>Nombre:</label>
+        <input type="text" id="detalle-nombre">
+
+        <label>Descripción:</label>
+        <input type="text" id="detalle-descripcion">
+
+        <label>Precio (Bs):</label>
+        <input type="number" step="0.01" id="detalle-precio">
+
+        <label>Stock Total:</label>
+        <input type="number" id="detalle-stock">
+
+        <label>Stock Mínimo:</label>
+        <input type="number" id="detalle-stock-minimo">
+
+        <div style="margin-top: 10px;">
+          <button type="submit">Guardar Cambios</button>
+          <button type="button" id="eliminar-producto">Eliminar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="mostrarInventario.js"></script>
+</body>
+</html>
