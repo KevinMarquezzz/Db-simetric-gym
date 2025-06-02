@@ -112,6 +112,7 @@ document.addEventListener('click', function (event) {
         document.getElementById('detalle-cedula').value = cliente.cedula;
         document.getElementById('detalle-telefono').value = cliente.telefono;
         document.getElementById('detalle-direccion').value = cliente.direccion;
+        document.getElementById('detalle-mail').value = cliente.mail;
         document.getElementById('detalle-membresia').value = cliente.membresia;
         document.getElementById('detalle-registro').value = cliente.fecha_registro;
         document.getElementById('detalle-vencimiento').textContent = cliente.fecha_vencimiento;
@@ -135,6 +136,7 @@ document.getElementById('form-editar-cliente').addEventListener('submit', functi
   const cedula = document.getElementById('detalle-cedula').value.trim();
   const telefono = document.getElementById('detalle-telefono').value.trim();
   const direccion = document.getElementById('detalle-direccion').value.trim();
+  const mail = document.getElementById('detalle-mail').value.trim();
   const membresia = document.getElementById('detalle-membresia').value;
   const fechaRegistro = document.getElementById('detalle-registro').value;
 
@@ -161,8 +163,8 @@ document.getElementById('form-editar-cliente').addEventListener('submit', functi
   const fechaVencimientoFormateada = fechaVencimiento.toISOString().split('T')[0];
 
   db.run(
-    `UPDATE clientes SET nombre = ?, cedula = ?, telefono = ?, direccion = ?, membresia = ?, fecha_registro = ?, fecha_vencimiento = ? WHERE id = ?`,
-    [nombre, cedula, telefono, direccion, membresia, fechaRegistro, fechaVencimientoFormateada, clienteIdSeleccionado],
+    `UPDATE clientes SET nombre = ?, cedula = ?, telefono = ?, direccion = ?, mail = ?, membresia = ?, fecha_registro = ?, fecha_vencimiento = ? WHERE id = ?`,
+    [nombre, cedula, telefono, direccion, mail, membresia, fechaRegistro, fechaVencimientoFormateada, clienteIdSeleccionado],
     function (err) {
       if (err) {
         console.error(err.message);

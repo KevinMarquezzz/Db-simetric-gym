@@ -16,6 +16,7 @@ db.serialize(() => {
     membresia TEXT NOT NULL,
     telefono TEXT NOT NULL,
     direccion TEXT NOT NULL,
+    mail TEXT NOT NULL,
     fechaRegistro TEXT NOT NULL,
     fechaVencimiento TEXT NOT NULL
   )`);
@@ -24,8 +25,8 @@ db.serialize(() => {
 // Función para agregar un nuevo cliente
 function agregarCliente(cliente, callback) {
   const sql = `INSERT INTO clientes 
-    (nombre, cedula, membresia, telefono, direccion, fechaRegistro, fechaVencimiento) 
-    VALUES (?, ?, ?, ?, ?, ?, ?)`;
+    (nombre, cedula, membresia, telefono, direccion, mail, fechaRegistro, fechaVencimiento) 
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?)`;
 
   db.run(sql, [
     cliente.nombre,
@@ -33,6 +34,7 @@ function agregarCliente(cliente, callback) {
     cliente.membresia,
     cliente.telefono,
     cliente.direccion,
+    cliente.mail,
     cliente.fechaRegistro,
     cliente.fechaVencimiento
   ], function(err) {

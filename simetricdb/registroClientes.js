@@ -14,8 +14,9 @@ db.run(`CREATE TABLE IF NOT EXISTS clientes (
   nombre TEXT,
   cedula TEXT UNIQUE,
   membresia TEXT,
-  telefono TEXT,
+  telefono TEXT UNIQUE,
   direccion TEXT,
+  mail TEXT,
   fecha_registro TEXT,
   fecha_vencimiento TEXT
 )`);
@@ -29,7 +30,12 @@ document.querySelector('form').addEventListener('submit', (event) => {
   const membresia = document.getElementById('membresia').value;
   const telefono = document.getElementById('telefono').value.trim();
   const direccion = document.getElementById('direccion').value.trim();
-  const fechaRegistro = document.getElementById('fecha').value;
+  const mail = document.getElementById('mail').value.trim();
+const hoy = new Date();
+const year = hoy.getFullYear();
+const month = (hoy.getMonth() + 1).toString().padStart(2, '0');
+const day = hoy.getDate().toString().padStart(2, '0');
+const fechaRegistro = `${year}-${month}-${day}`;
 
   // Calculamos fecha de vencimiento: sumando un mes a la fecha de registro
   const fechaVencimiento = calcularFechaVencimiento(fechaRegistro, membresia);
@@ -39,13 +45,13 @@ document.querySelector('form').addEventListener('submit', (event) => {
 
   // Insertar cliente
   setTimeout(() => {
-    db.run(`INSERT INTO clientes (nombre, cedula, membresia, telefono, direccion, fecha_registro, fecha_vencimiento)
-            VALUES (?, ?, ?, ?, ?, ?, ?)`,
-      [nombre, cedula, membresia, telefono, direccion, fechaRegistro, fechaVencimiento],
+    db.run(`INSERT INTO clientes (nombre, cedula, membresia, telefono, direccion, mail, fecha_registro, fecha_vencimiento)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+      [nombre, cedula, membresia, telefono, direccion, mail, fechaRegistro, fechaVencimiento],
       function (err) {
         if (err) {
           if (err.message.includes('UNIQUE')) {
-            alert('Error: ya existe un cliente con esa cédula.');
+            alert('Error: ya existe un cliente con esa cédula o telefono.');
           } else {
             console.error(err.message);
             alert('Error al registrar cliente.');
