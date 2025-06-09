@@ -79,3 +79,7 @@ function obtenerFechaActual() {
   const day = String(hoy.getDate()).padStart(2, '0');
   return `${year}-${month}-${day}`;
 }
+
+document.getElementById('codigo').addEventListener('input', (e) => {
+  e.target.value = e.target.value.replace(/\D/g, '');
+});
