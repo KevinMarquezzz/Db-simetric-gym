@@ -178,7 +178,10 @@ header .img {
   gap: 1rem;
   animation: fadeIn 0.3s ease-in-out;
 }
-
+textarea {
+  resize: vertical;
+  min-height: 60px;
+}
 .popup-contenido h3 {
   text-align: center;
   margin-bottom: 1rem;
@@ -193,7 +196,7 @@ header .img {
   color: #f2f3d9;
 }
 
-.popup-contenido input {
+.popup-contenido input, textarea {
   padding: 0.5rem;
   border-radius: 6px;
   border: 1px solid #880808;

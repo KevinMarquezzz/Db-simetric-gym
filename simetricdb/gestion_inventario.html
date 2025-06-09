@@ -53,19 +53,33 @@
         <label>Nombre:</label>
         <input type="text" id="detalle-nombre">
 
-        <label>Descripción:</label>
-        <input type="text" id="detalle-descripcion">
-        <label>Stock Total:</label>
-        <input type="number" id="detalle-stock">
+        <label>Proveedor:</label>
+        <input type="text" id="detalle-proveedor">
+
+        <label>Marca:</label>
+        <input type="text" id="detalle-marca">
+
       </div>
 
       <div>
-      <label>Precio (Bs):</label>
+         <label>Precio de compra ($):</label>
+        <input type="number" step="0.01" id="detalle-precio-compra">
+
+      <label>Precio de venta ($):</label>
         <input type="number" step="0.01" id="detalle-precio">
-        <label>Stock Mínimo:</label>
-        <input type="number" id="detalle-stock-minimo">
+
+        <label>Stock Total:</label>
+        <input type="number" id="detalle-stock">
+        
+        <label>Unidad:</label>
+        <input type="text" id="detalle-unidad">
+
       </div>
+    
+        
       </div>
+      <label>Descripción:</label>
+        <textarea name="descripcion" id="detalle-descripcion"></textarea>
         <div style="margin-top: 10px;">
           <button type="submit">Guardar Cambios</button>
           <button type="button" id="eliminar-producto">Eliminar</button>

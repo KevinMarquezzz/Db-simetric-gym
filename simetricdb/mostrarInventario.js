@@ -87,9 +87,12 @@ document.addEventListener('click', function (event) {
         document.getElementById('detalle-codigo').value = p.codigo;
         document.getElementById('detalle-nombre').value = p.nombre;
         document.getElementById('detalle-descripcion').value = p.descripcion;
+        document.getElementById('detalle-proveedor').value = p.proveedor;
+        document.getElementById('detalle-precio-compra').value = p.precio_compra;
         document.getElementById('detalle-precio').value = p.precio_venta;
         document.getElementById('detalle-stock').value = p.stock;
-        document.getElementById('detalle-stock-minimo').value = ''; // si tienes stock mínimo en DB, agréga aquí
+        document.getElementById('detalle-marca').value = p.marca;
+        document.getElementById('detalle-unidad').value = p.unidad;
 
         document.getElementById('popup-detalles-inv').classList.remove('oculto');
       }
@@ -108,12 +111,16 @@ document.getElementById('form-editar-producto').addEventListener('submit', funct
 
   const nombre = document.getElementById('detalle-nombre').value.trim();
   const descripcion = document.getElementById('detalle-descripcion').value.trim();
-  const precio = parseFloat(document.getElementById('detalle-precio').value);
+  const proveedor = document.getElementById('detalle-proveedor').value.trim();
+  const precioCompra = parseFloat(document.getElementById('detalle-precio-compra').value);
+  const precioVenta = parseFloat(document.getElementById('detalle-precio').value);
   const stock = parseInt(document.getElementById('detalle-stock').value);
+  const marca = document.getElementById('detalle-marca').value.trim();
+  const unidad = document.getElementById('detalle-unidad').value.trim();
 
   db.run(
-    `UPDATE productos SET nombre = ?, descripcion = ?, precio_venta = ?, stock = ? WHERE id = ?`,
-    [nombre, descripcion, precio, stock, productoIdSeleccionado],
+    `UPDATE productos SET nombre = ?, descripcion = ?, proveedor = ?, precio_compra = ?, precio_venta = ?, stock = ?, marca = ?, unidad = ? WHERE id = ?`,
+    [nombre, descripcion, proveedor, precioCompra, precioVenta, stock, marca, unidad, productoIdSeleccionado],
     function (err) {
       if (err) {
         console.error(err.message);
