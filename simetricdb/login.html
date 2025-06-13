@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Iniciar sesión</title>
+    <link rel="stylesheet" href="login.css">
+</head>
+<body>
+    <main>
+        <header>
+            <div class="logo_img">
+                <img src="resources/logo2_simetricG.png" alt="logo" height="100px" width="100px">
+            </div>
+            <div id="title">
+                <h1>Iniciar Sesión</h1>
+            </div>
+        </header>
+
+        <section class="login-section">
+            <form id="login-form">
+                <div class="input-group">
+                    <label for="usuario">Usuario</label>
+                    <input type="text" id="usuario" name="usuario" required>
+                </div>
+
+                <div class="input-group">
+                    <label for="clave">Contraseña</label>
+                    <input type="password" id="clave" name="clave" required>
+                </div>
+
+                <div class="btn-login">
+                    <button type="submit">Ingresar</button>
+                </div>
+            </form>
+
+            <div class="extras">
+                <p><a href="registro.html" id="registrar-link">¿No te has registrado? Haz clic aquí</a></p>
+                <p><a href="#" id="recuperar-link">¿Olvidaste tu contraseña?</a></p>
+            </div>
+        </section>
+    </main>
+    <script src="login.js"></script>
+</body>
+</html>

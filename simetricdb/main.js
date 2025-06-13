@@ -10,7 +10,7 @@ function createWindow() {
     }
   });
 
-  win.loadFile('simetricdb/inicio.html');
+  win.loadFile('simetricdb/login.html');
 }
 
 app.whenReady().then(createWindow);

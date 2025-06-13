@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Registrar Administradora</title>
+    <link rel="stylesheet" href="registro.css">
+</head>
+<body>
+    <main>
+        <div class="top">
+            <a href="login.html" class="back_btn">
+              <button><img class="icon" src="resources/arrow_back_left_icon.png" alt="" height="20px" width="20px"></button>
+            </a>
+        <header>
+            <div class="logo_img">
+                <img src="resources/logo2_simetricG.png" alt="logo" height="100px" width="100px">
+            </div>
+            <div id="title">
+                <h1>Registrar Administradora</h1>
+            </div>
+        </header>
+
+        <section class="formulario">
+            <form id="registro-form">
+                <label for="usuario">Usuario:</label>
+                <input type="text" id="usuario" required>
+
+                <label for="clave">Contraseña:</label>
+                <input type="password" id="clave" required>
+
+                <label for="confirmar">Confirmar Contraseña:</label>
+                <input type="password" id="confirmar" required>
+
+                <div class="btns">
+                    <button type="submit">Registrar</button>
+                    <button type="reset">Limpiar</button>
+                </div>
+            </form>
+        </section>
+    </main>
+
+    <script src="registro.js"></script>
+</body>
+</html>
