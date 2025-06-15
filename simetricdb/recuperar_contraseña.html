@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Recuperar Contraseña</title>
+    <link rel="stylesheet" href="recuperar_contraseña.css">
+</head>
+<body>
+    <main>
+        <div class="top">
+            <a href="login.html" class="back_btn">
+              <button><img class="icon" src="resources/arrow_back_left_icon.png" alt="" height="40px" width="40px"></button>
+            </a>
+            </div>  
+        <header>
+            <div class="logo_img">
+                <img src="resources/logo2_simetricG.png" alt="logo" height="100px" width="100px">
+            </div>
+            <div id="title">
+                <h1>Recuperar Contraseña</h1>
+            </div>
+        </header>
+
+        
+        <section class="login-section">
+            <form id="verificacion-form">
+                <div class="input-group">
+                    <label for="usuario">Usuario</label>
+                    <input type="text" id="usuario" name="usuario" required>
+                </div>
+
+                <div class="input-group">
+                    <label for="clave-maestra">Contraseña del sistema</label>
+                    <input type="password" id="clave-maestra" required>
+                </div>
+
+                <div class="btn-login">
+                    <button type="submit">Verificar</button>
+                </div>
+            </form>
+
+            <form id="cambio-form" class="popup hidden">
+                <div class="popup-container">
+                    <h4 class="popup-title">Cambiar contraseña</h4>
+                <div class="input-group">
+                    <label for="nueva-clave">Nueva contraseña</label>
+                    <input type="password" id="nueva-clave" required>
+                </div>
+
+                <div class="input-group">
+                    <label for="confirmar-clave">Confirmar contraseña</label>
+                    <input type="password" id="confirmar-clave" required>
+                </div>
+
+                <div class="btn-login">
+                    <button type="submit">Actualizar</button>
+                    <button id="btn-cancelar-popup" class="btn">Cancelar</button>
+                </div>
+            </div>
+            </form>
+        </section>
+    </main>
+
+    <script src="recuperarContraseña.js"></script>
+</body>
+</html>

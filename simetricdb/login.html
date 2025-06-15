@@ -37,10 +37,24 @@
 
             <div class="extras">
                 <p><a href="registro.html" id="registrar-link">¿No te has registrado? Haz clic aquí</a></p>
-                <p><a href="#" id="recuperar-link">¿Olvidaste tu contraseña?</a></p>
+                <p><a href="recuperar_contraseña.html" id="recuperar-link">¿Olvidaste tu contraseña?</a></p>
+                <p><a href="administrar_perfiles.html" id="administrar-link">Administrar perfiles registrados</a></p>
             </div>
         </section>
     </main>
+        <!-- Popup de autenticación para registro -->
+<div id="popup-auth" class="popup hidden">
+    <div class="popup-content">
+        <h3>Autorización requerida</h3>
+        <p>Ingresa la contraseña del primer usuario registrado para continuar:</p>
+        <input type="password" id="clave-autorizacion" placeholder="Contraseña" />
+        <div class="popup-buttons">
+            <button id="btn-verificar-clave" class="btn">Verificar</button>
+            <button id="btn-cancelar-popup" class="btn">Cancelar</button>
+        </div>
+    </div>
+</div>
     <script src="login.js"></script>
+
 </body>
 </html>

@@ -39,3 +39,68 @@ form.addEventListener('submit', (e) => {
         }
     });
 });
+// Elementos del popup
+const registrarLink = document.getElementById('registrar-link');
+const administrarLink = document.getElementById('administrar-link');
+const popup = document.getElementById('popup-auth');
+const inputClave = document.getElementById('clave-autorizacion');
+const btnVerificar = document.getElementById('btn-verificar-clave');
+const btnCancelar = document.getElementById('btn-cancelar-popup');
+
+let modoAcceso = "";
+
+registrarLink.addEventListener('click', (e) => {
+    e.preventDefault();
+    db.get("SELECT clave FROM usuarios ORDER BY id ASC LIMIT 1", (err, row) => {
+        if (!row) {
+            window.location.href = "registro.html";
+        } else {
+            modoAcceso = "registro";
+            popup.classList.remove('hidden');
+            inputClave.value = "";
+            inputClave.focus();
+        }
+    });
+});
+
+// LINK ADMINISTRAR
+administrarLink.addEventListener('click', (e) => {
+    e.preventDefault();
+    db.get("SELECT clave FROM usuarios ORDER BY id ASC LIMIT 1", (err, row) => {
+        if (!row) {
+            window.location.href = "administrar_perfiles.html";
+        } else {
+            modoAcceso = "admin";
+            popup.classList.remove('hidden');
+            inputClave.value = "";
+            inputClave.focus();
+        }
+    });
+});
+
+// VERIFICAR CLAVE (una sola vez)
+btnVerificar.addEventListener('click', () => {
+    const claveIngresada = inputClave.value.trim();
+    db.get("SELECT clave FROM usuarios ORDER BY id ASC LIMIT 1", (err, row) => {
+        if (err) {
+            alert("Error al verificar la contraseña.");
+            return;
+        }
+
+        if (claveIngresada === row.clave) {
+            popup.classList.add('hidden');
+            if (modoAcceso === "registro") {
+                window.location.href = "registro.html";
+            } else if (modoAcceso === "admin") {
+                window.location.href = "administrar_perfiles.html";
+            }
+        } else {
+            alert("Contraseña incorrecta.");
+        }
+    });
+});
+
+// CANCELAR
+btnCancelar.addEventListener('click', () => {
+    popup.classList.add('hidden');
+});
