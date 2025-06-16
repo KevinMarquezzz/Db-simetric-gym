@@ -74,23 +74,29 @@ header #mainttl{
     box-shadow: 0 0 10px #880808;
 }
 
-.form-container h2 {
+.form-container h3 {
     text-align: center;
     color: #f2f3d9;
     margin-bottom: 1.5rem;
 }
 
 .form-group {
+    flex: 1;
     display: flex;
     flex-direction: column;
     margin-bottom: 1rem;
+    margin-bottom: 15px;
 }
 
 .form-group label {
     color: #f2f3d9;
     margin-bottom: 0.3rem;
 }
-
+.form-row {
+    display: flex;
+    justify-content: space-between;
+    gap: 20px;
+  }
 .form-group input,
 .form-group select,
 .form-group textarea {

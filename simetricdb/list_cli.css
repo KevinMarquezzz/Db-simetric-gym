@@ -117,7 +117,15 @@ header #mainttl{
     align-items: center;
     text-align: center;
 }
-.ver-detalles {
+.form-btn{
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem; /* Espacio entre botones */
+  justify-content: center; /* Centra horizontalmente si lo deseas */
+  margin-top: 0.5rem; /* Opcional, separa del contenido superior */
+  
+}
+.ver-detalles, .actualizar-membresia {
     padding: 0.3rem 0.6rem;
     border: none;
     background-color: #880808;
@@ -128,30 +136,14 @@ header #mainttl{
     font-weight: bolder;
 }
 
-.ver-detalles:hover {
+.ver-detalles:hover,  .actualizar-membresia:hover {
     background-color: #aa1010;
 }
 .table-header {
     font-weight: bold;
     background-color: #1e1e1e;
 }
-
-.status-box {
-    width: 20px;
-    height: 20px;
-    margin: auto;
-    border-radius: 4px;
-}
-
-.vigente {
-    background-color: green;
-}
-
-.vencido {
-    background-color: gray;
-}
-  
-  .popup {
+   .popup {
     position: fixed;
     top: 0;
     left: 0;
@@ -257,12 +249,12 @@ header #mainttl{
     margin-right: 0.5rem;
   }
   
-  #form-editar-cliente button[type="submit"] {
+  #form-editar-cliente button[type="button"] {
     background-color: #880808;
     color: #fff;
   }
   
-  #form-editar-cliente button[type="submit"]:hover {
+  #form-editar-cliente button[type="button"]:hover {
     background-color: #aa1010;
   }
   
@@ -289,3 +281,50 @@ header #mainttl{
   .oculto{
     display: none;
   }
+  .estado-clase{
+    font-weight: bolder;
+  }
+
+  #form-actualizar-membresia {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+  
+  #form-actualizar-membresia label {
+    font-weight: bold;
+    margin-top: 0.25rem;
+    color: #f2f3d9;
+  }
+  .mes-header {
+    margin-top: 30px;
+    font-size: 18px;
+    color: #ff5555;
+    border-bottom: 2px solid #880808;
+    padding-bottom: 5px;
+  }
+  #form-actualizar-membresia select, input  {
+    padding: 0.5rem;
+    border-radius: 6px;
+    border: 1px solid #880808;
+    background-color: #121212;
+    color: #f2f3d9;
+    font-size: 1rem;
+  }
+  
+  #form-actualizar-membresia button[type="submit"] {
+    background-color: #880808;
+    color: #fff;
+    padding: 0.6rem;
+    border: none;
+    border-radius: 6px;
+    font-weight: bold;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+  }
+  
+  #form-actualizar-membresia button[type="submit"]:hover {
+    background-color: #aa1010;
+  }
+  

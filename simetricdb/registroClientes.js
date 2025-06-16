@@ -18,9 +18,34 @@ db.run(`CREATE TABLE IF NOT EXISTS clientes (
   direccion TEXT,
   mail TEXT,
   fecha_registro TEXT,
-  fecha_vencimiento TEXT
+  fecha_vencimiento TEXT,
+  monto_dolares REAL,
+  tasa_dia REAL,
+  monto_bs REAL,
+  metodo_pago TEXT
+)`);
+// Crear tabla de pagos (historial) si no existe
+db.run(`CREATE TABLE IF NOT EXISTS pagos (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  cliente_id INTEGER,
+  fecha_pago TEXT,
+  monto_dolares REAL,
+  tasa_dia REAL,
+  monto_bs REAL,
+  metodo_pago TEXT,
+  membresia TEXT,
+  FOREIGN KEY (cliente_id) REFERENCES clientes(id)
 )`);
 
+document.getElementById('tasa_dia').addEventListener('input', calcularBs);
+document.getElementById('monto_dolares').addEventListener('input', calcularBs);
+
+function calcularBs() {
+  const tasa = parseFloat(document.getElementById('tasa_dia').value) || 0;
+  const monto = parseFloat(document.getElementById('monto_dolares').value) || 0;
+  const bs = (monto * tasa).toFixed(2);
+  document.getElementById('monto_bs').value = bs;
+}
 // Escuchamos el evento cuando el formulario se envía
 document.querySelector('form').addEventListener('submit', (event) => {
   event.preventDefault(); // Evitamos que recargue la página
@@ -31,6 +56,11 @@ document.querySelector('form').addEventListener('submit', (event) => {
   const telefono = document.getElementById('telefono').value.trim();
   const direccion = document.getElementById('direccion').value.trim();
   const mail = document.getElementById('mail').value.trim();
+  const monto_dolares = parseFloat(document.getElementById('monto_dolares').value);
+  const tasa_dia = parseFloat(document.getElementById('tasa_dia').value);
+  const monto_bs = parseFloat(document.getElementById('monto_bs').value);
+  const metodo_pago = document.getElementById('metodo_pago').value;
+
 const hoy = new Date();
 const year = hoy.getFullYear();
 const month = (hoy.getMonth() + 1).toString().padStart(2, '0');
@@ -43,27 +73,40 @@ const fechaRegistro = `${year}-${month}-${day}`;
 
   // Validar campos vacíos (opcionalmente más validaciones aquí)
 
-  // Insertar cliente
-  setTimeout(() => {
-    db.run(`INSERT INTO clientes (nombre, cedula, membresia, telefono, direccion, mail, fecha_registro, fecha_vencimiento)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-      [nombre, cedula, membresia, telefono, direccion, mail, fechaRegistro, fechaVencimiento],
-      function (err) {
-        if (err) {
-          if (err.message.includes('UNIQUE')) {
-            alert('Error: ya existe un cliente con esa cédula o telefono.');
-          } else {
-            console.error(err.message);
-            alert('Error al registrar cliente.');
-          }
+ // Insertar cliente
+setTimeout(() => {
+  db.run(`INSERT INTO clientes (nombre, cedula, membresia, telefono, direccion, mail, fecha_registro, fecha_vencimiento, monto_dolares, tasa_dia, monto_bs, metodo_pago)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    [nombre, cedula, membresia, telefono, direccion, mail, fechaRegistro, fechaVencimiento, monto_dolares, tasa_dia, monto_bs, metodo_pago],
+    function (err) {
+      if (err) {
+        if (err.message.includes('UNIQUE')) {
+          alert('Error: ya existe un cliente con esa cédula o teléfono.');
         } else {
-          alert('Cliente registrado exitosamente.');
-          event.target.reset();
+          console.error(err.message);
+          alert('Error al registrar cliente.');
         }
-      });
-  }, 100); // 100 milisegundos de respiro
-});
+      } else {
+        const clienteID = this.lastID; // ID del cliente recién insertado
 
+        // Insertar registro en el historial de pagos
+        db.run(`INSERT INTO pagos (cliente_id, fecha_pago, monto_dolares, tasa_dia, monto_bs, metodo_pago, membresia)
+                VALUES (?, ?, ?, ?, ?, ?, ?)`,
+          [clienteID, fechaRegistro, monto_dolares, tasa_dia, monto_bs, metodo_pago, membresia],
+          function (err2) {
+            if (err2) {
+              console.error('Error al guardar en pagos:', err2.message);
+            } else {
+              console.log('Pago registrado en el historial');
+            }
+          });
+
+        alert('Cliente registrado exitosamente.');
+        event.target.reset();
+      }
+    });
+}, 100);
+})
 // Función para sumar un mes
 function calcularFechaVencimiento(fecha, tipoMembresia) {
   const fechaObj = new Date(fecha);

@@ -222,7 +222,7 @@ document.getElementById('btn-historial').addEventListener('click', () => {
   
         // Mostrar ventas agrupadas
         for (const [mes, ventas] of Object.entries(ventasPorMes)) {
-          contenedor.innerHTML += `<h4 class="mes-header">🗓️ ${mes}</h4><hr>`;
+          contenedor.innerHTML += `<h4 class="mes-header">🗓️ ${mes.charAt(0).toUpperCase() + mes.slice(1)}</h4><hr>`;
           
           ventas.forEach(row => {
             const fecha = new Date(row.fecha);
