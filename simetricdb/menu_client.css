@@ -124,3 +124,11 @@ main{
     .btns a button:active{
         transform: scale(0.9);
     }
+    .btn_inventario{
+        padding-top: 5%;
+        display: grid;
+        grid-template-columns: repeat(2, 1fr); /* 2 columnas iguales */
+        gap: 20px; /* espacio entre los botones */
+        max-width: 600px; /* o el tamaño que tú quieras */
+        margin: 0 auto; /* centrar */
+    }

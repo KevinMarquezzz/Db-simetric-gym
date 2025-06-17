@@ -60,7 +60,7 @@
 
               <div id="tasa-container">
                 <label for="tasa-cambio">Inserte tasa del día (Bs/USD): </label> 
-                <input type="number" id="tasa-cambio" value="" placeholder="0.00" step="0.01" min="0" style="width: 100px;">
+                <input type="number" id="tasa-cambio" value="" placeholder="0.00" step="0.01" min="0" style="width: 100px;" required>
               </div>
 
               <button class="btn-confirmar-venta">Confirmar Venta</button>
@@ -70,7 +70,7 @@
               <button id="btn-limpiar-historial" class="hidden">Limpiar Historial</button>
               <div id="historial-ventas" class="historial-container hidden"></div>
 
-            </div>
+            </div> 
           </section>
         
           <script src="moduloVentas.js"></script>

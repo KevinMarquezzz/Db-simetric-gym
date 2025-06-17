@@ -73,27 +73,35 @@ function renderizarProductosVenta(productos) {
     container.appendChild(row);
   });
 }
+// Actualizar automáticamente el total en bolívares cuando cambia la tasa
+document.getElementById('tasa-cambio').addEventListener('input', actualizarTotalBs);
+function actualizarTotalBs() {
+  let totalUSD = 0;
+  carrito.forEach((item) => {
+    totalUSD += item.precio_venta * item.cantidad;
+  });
+
+  const tasa = parseFloat(document.getElementById('tasa-cambio').value) || 0;
+  const totalBs = (totalUSD * tasa).toFixed(2);
+
+  document.getElementById('venta-total').textContent =
+    `Total: ${totalUSD.toFixed(2)} USD | ${totalBs} Bs`;
+}
+
 
 function renderizarCarrito() {
   const contenedor = document.getElementById('venta-carrito-container');
   contenedor.innerHTML = '';
 
-  let totalUSD = 0;
-
   carrito.forEach((item) => {
     const subtotal = item.precio_venta * item.cantidad;
-    totalUSD += subtotal;
 
     const div = document.createElement('div');
     div.textContent = `${item.nombre} x${item.cantidad} - ${subtotal.toFixed(2)} USD`;
     contenedor.appendChild(div);
   });
 
-  const tasa = parseFloat(document.getElementById('tasa-cambio').value) || 0;
-  const totalBs = totalUSD * tasa;
-
-  document.getElementById('venta-total').textContent =
-    `Total: ${totalUSD.toFixed(2)} USD | ${totalBs.toFixed(2)} Bs`;
+  actualizarTotalBs(); // ← Llama a la función reutilizable
 }
 
 window.addEventListener('DOMContentLoaded', () => {
@@ -148,7 +156,13 @@ window.addEventListener('DOMContentLoaded', () => {
       db.serialize(() => {
         const stmt = db.prepare(`INSERT INTO ventas (producto_id, cantidad, total_venta, tasa_cambio) VALUES (?, ?, ?, ?)`);
 
-        const tasa = parseFloat(document.getElementById('tasa-cambio').value) || 0;
+        const tasaInput = document.getElementById('tasa-cambio').value.trim();
+        const tasa = parseFloat(tasaInput);
+        
+        if (!tasaInput || isNaN(tasa) || tasa <= 0) {
+          alert('Debe ingresar una tasa de cambio válida para confirmar la venta.');
+          return;
+        }
         carrito.forEach(item => {
           const total = item.precio_venta * item.cantidad;
 
