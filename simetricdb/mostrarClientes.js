@@ -123,7 +123,9 @@ document.addEventListener('click', function (event) {
         document.getElementById('detalle-membresia').value = cliente.membresia;
         document.getElementById('detalle-registro').value = cliente.fecha_registro;
         document.getElementById('detalle-vencimiento').textContent = cliente.fecha_vencimiento;
-
+        if (document.getElementById('referencia')) {
+          document.getElementById('referencia').value = cliente.referencia || '';
+        }
         document.getElementById('popup-detalles').classList.remove('oculto');
       }
     });
@@ -206,6 +208,7 @@ document.getElementById('btn-historial-pagos').addEventListener('click', () => {
                   <p><strong>💵 Monto en dólares:</strong> ${pago.monto_dolares.toFixed(2)} $</p>
                   <p><strong>💱 Tasa del día:</strong> ${pago.tasa_dia.toFixed(2)}</p>
                   <p><strong>💰 Monto en bolívares:</strong> ${pago.monto_bs.toFixed(2)} Bs</p>
+                  ${pago.referencia ? `<p><strong>🔢 Referencia:</strong> ${pago.referencia}</p>` : ''}
                   <hr>
                 </div>
               `;
@@ -353,6 +356,15 @@ function calcularMontoBs() {
 document.addEventListener('click', function (event) {
   if (event.target.classList.contains('actualizar-membresia')) {
     clienteIdSeleccionado = event.target.dataset.id;
+  
+    // Obtener el nombre del cliente
+    const cliente = clientesOriginales.find(c => c.id == clienteIdSeleccionado);
+    if (cliente) {
+      const titulo = document.getElementById('titulo-actualizar-membresia');
+      titulo.innerHTML = `Actualizar membresía de<br><strong>${cliente.nombre}</strong>`;
+
+    }
+  
     document.getElementById('popup-actualizar').classList.remove('oculto');
   }
 });
@@ -371,7 +383,11 @@ document.getElementById('form-actualizar-membresia').addEventListener('submit', 
   const tasaDia = parseFloat(document.getElementById('tasa_dia').value) || 0;
   const montoBs = parseFloat(document.getElementById('monto_bs').value) || 0;
   const metodoPago = document.getElementById('metodo_pago').value;
-
+  const referencia = document.getElementById('referencia').value;
+  if ((metodoPago === 'transferencia' || metodoPago === 'pago_movil') && referencia === '') {
+    alert('Debe ingresar el número de referencia para el método de pago seleccionado.');
+    return;
+  }
   const fechaHoy = new Date();
   let nuevaFechaVencimiento = new Date(fechaHoy);
 
@@ -392,10 +408,10 @@ document.getElementById('form-actualizar-membresia').addEventListener('submit', 
     // Actualizar el cliente
     db.run(`
       UPDATE clientes
-      SET membresia = ?, fecha_registro = ?, fecha_vencimiento = ?, monto_dolares = ?, tasa_dia = ?, monto_bs = ?, metodo_pago = ?
+      SET membresia = ?, fecha_registro = ?, fecha_vencimiento = ?, monto_dolares = ?, tasa_dia = ?, monto_bs = ?, metodo_pago = ?, referencia = ?
       WHERE id = ?
     `,
-      [nuevaMembresia, fechaRegistro, fechaVencimiento, montoDolares, tasaDia, montoBs, metodoPago, clienteIdSeleccionado],
+      [nuevaMembresia, fechaRegistro, fechaVencimiento, montoDolares, tasaDia, montoBs, metodoPago, referencia, clienteIdSeleccionado],
       function (err) {
         if (err) {
           console.error(err.message);
@@ -405,10 +421,10 @@ document.getElementById('form-actualizar-membresia').addEventListener('submit', 
   
         // Registrar el pago en la tabla pagos
         db.run(`
-          INSERT INTO pagos (cliente_id, fecha_pago, membresia, metodo_pago, monto_dolares, tasa_dia, monto_bs)
-          VALUES (?, ?, ?, ?, ?, ?, ?)
+          INSERT INTO pagos (cliente_id, fecha_pago, membresia, metodo_pago, monto_dolares, tasa_dia, monto_bs, referencia)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?)
         `,
-          [clienteIdSeleccionado, fechaRegistro, nuevaMembresia, metodoPago, montoDolares, tasaDia, montoBs],
+          [clienteIdSeleccionado, fechaRegistro, nuevaMembresia, metodoPago, montoDolares, tasaDia, montoBs, referencia],
           function (err) {
             if (err) {
               console.error(err.message);

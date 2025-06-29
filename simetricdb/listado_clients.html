@@ -35,7 +35,7 @@
     <div id="popup-actualizar" class="popup oculto">
       <div class="popup-contenido">
         <span class="cerrar-popup" id="cerrar-popup-actualizar">&times;</span>
-        <h3>Actualizar Membresía</h3>
+        <h3 id="titulo-actualizar-membresia">Actualizar Membresía</h3>
         <form id="form-actualizar-membresia">
           <label>Nuevo tipo de membresía:</label>
           <select id="nueva_membresia">
@@ -65,6 +65,8 @@
             <option value="tarjeta">Tarjeta</option>
           </select>
           
+          <label>Referencia:</label>
+          <input type="number" id="referencia" name="referencia">
           <button type="submit">Actualizar</button>
         </form>
       </div>

@@ -22,7 +22,8 @@ db.run(`CREATE TABLE IF NOT EXISTS clientes (
   monto_dolares REAL,
   tasa_dia REAL,
   monto_bs REAL,
-  metodo_pago TEXT
+  metodo_pago TEXT,
+  referencia TEXT
 )`);
 // Crear tabla de pagos (historial) si no existe
 db.run(`CREATE TABLE IF NOT EXISTS pagos (
@@ -34,11 +35,13 @@ db.run(`CREATE TABLE IF NOT EXISTS pagos (
   monto_bs REAL,
   metodo_pago TEXT,
   membresia TEXT,
+  referencia TEXT,
   FOREIGN KEY (cliente_id) REFERENCES clientes(id)
 )`);
 
 document.getElementById('tasa_dia').addEventListener('input', calcularBs);
 document.getElementById('monto_dolares').addEventListener('input', calcularBs);
+
 
 function calcularBs() {
   const tasa = parseFloat(document.getElementById('tasa_dia').value) || 0;
@@ -60,6 +63,17 @@ document.querySelector('form').addEventListener('submit', (event) => {
   const tasa_dia = parseFloat(document.getElementById('tasa_dia').value);
   const monto_bs = parseFloat(document.getElementById('monto_bs').value);
   const metodo_pago = document.getElementById('metodo_pago').value;
+  const referencia = document.getElementById('referencia').value.trim();
+
+// Validar si se necesita la referencia
+if ((metodo_pago === 'transferencia' || metodo_pago === 'pago_movil') && referencia === '') {
+  document.getElementById('referencia').style.border = '2px solid red';
+  alert('Debe ingresar el número de referencia para el método de pago seleccionado.');
+  return;
+} else {
+  document.getElementById('referencia').style.border = ''; // Quitar rojo si es válido
+}
+
 
 const hoy = new Date();
 const year = hoy.getFullYear();
@@ -75,9 +89,9 @@ const fechaRegistro = `${year}-${month}-${day}`;
 
  // Insertar cliente
 setTimeout(() => {
-  db.run(`INSERT INTO clientes (nombre, cedula, membresia, telefono, direccion, mail, fecha_registro, fecha_vencimiento, monto_dolares, tasa_dia, monto_bs, metodo_pago)
-          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-    [nombre, cedula, membresia, telefono, direccion, mail, fechaRegistro, fechaVencimiento, monto_dolares, tasa_dia, monto_bs, metodo_pago],
+  db.run(`INSERT INTO clientes (nombre, cedula, membresia, telefono, direccion, mail, fecha_registro, fecha_vencimiento, monto_dolares, tasa_dia, monto_bs, metodo_pago, referencia)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,?)`,
+    [nombre, cedula, membresia, telefono, direccion, mail, fechaRegistro, fechaVencimiento, monto_dolares, tasa_dia, monto_bs, metodo_pago, referencia],
     function (err) {
       if (err) {
         if (err.message.includes('UNIQUE')) {
@@ -90,9 +104,9 @@ setTimeout(() => {
         const clienteID = this.lastID; // ID del cliente recién insertado
 
         // Insertar registro en el historial de pagos
-        db.run(`INSERT INTO pagos (cliente_id, fecha_pago, monto_dolares, tasa_dia, monto_bs, metodo_pago, membresia)
-                VALUES (?, ?, ?, ?, ?, ?, ?)`,
-          [clienteID, fechaRegistro, monto_dolares, tasa_dia, monto_bs, metodo_pago, membresia],
+        db.run(`INSERT INTO pagos (cliente_id, fecha_pago, monto_dolares, tasa_dia, monto_bs, metodo_pago, membresia, referencia)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+          [clienteID, fechaRegistro, monto_dolares, tasa_dia, monto_bs, metodo_pago, membresia, referencia],
           function (err2) {
             if (err2) {
               console.error('Error al guardar en pagos:', err2.message);
@@ -144,5 +158,9 @@ document.getElementById('cedula').addEventListener('input', (e) => {
 });
 
 document.getElementById('telefono').addEventListener('input', (e) => {
+  e.target.value = e.target.value.replace(/\D/g, '');
+});
+
+document.getElementById('referencia').addEventListener('input', (e) => {
   e.target.value = e.target.value.replace(/\D/g, '');
 });

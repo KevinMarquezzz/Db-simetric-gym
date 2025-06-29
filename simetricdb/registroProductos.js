@@ -36,7 +36,7 @@ document.querySelector('form').addEventListener('submit', (event) => {
   const categoria = document.getElementById('categoria').value.trim();
   const marca = document.getElementById('marca').value.trim();
   const precio_compra = parseFloat(document.getElementById('precio_compra').value);
-  const precio_venta = parseFloat(document.getElementById('precio_venta').value);
+  const precio_venta = parseFloat((precio_compra * 1.30).toFixed(2));
   const stock = parseInt(document.getElementById('stock').value);
   const unidad = document.getElementById('unidad').value.trim();
   const proveedor = document.getElementById('proveedor').value.trim();
@@ -82,4 +82,15 @@ function obtenerFechaActual() {
 
 document.getElementById('codigo').addEventListener('input', (e) => {
   e.target.value = e.target.value.replace(/\D/g, '');
+});
+document.getElementById('precio_compra').addEventListener('input', () => {
+  const precioCompra = parseFloat(document.getElementById('precio_compra').value);
+  const campoVenta = document.getElementById('precio_venta');
+
+  if (!isNaN(precioCompra)) {
+    const precioVenta = (precioCompra * 1.30).toFixed(2);
+    campoVenta.value = precioVenta;
+  } else {
+    campoVenta.value = '';
+  }
 });

@@ -240,17 +240,21 @@ document.getElementById('btn-historial').addEventListener('click', () => {
           
           ventas.forEach(row => {
             const fecha = new Date(row.fecha);
+            const totalBs = row.total_venta * row.tasa_cambio;
+          
             contenedor.innerHTML += `
               <div class="venta-item">
                 <p><strong>💼 Producto:</strong> ${row.nombre}</p>
                 <p><strong>📦 Cantidad:</strong> ${row.cantidad}</p>
-                <p><strong>💲 Total:</strong> ${row.total_venta.toFixed(2)} Bs</p>
-                 <p><strong>💱 Tasa:</strong> ${row.tasa_cambio.toFixed(2) || 'N/A'} Bs/USD</p>
+                <p><strong>💲 Total USD:</strong> ${row.total_venta.toFixed(2)}</p>
+                <p><strong>💲 Total Bs:</strong> ${totalBs.toFixed(2)} Bs</p>
+                <p><strong>💱 Tasa:</strong> ${row.tasa_cambio.toFixed(2) || 'N/A'} Bs/USD</p>
                 <p><strong>📅 Fecha:</strong> ${fecha.toLocaleDateString()} ${fecha.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
                 <hr>
               </div>
             `;
           });
+          
         }
       }
   
