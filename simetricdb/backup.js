@@ -6,7 +6,7 @@ const os = require('os');
 const dbPath = path.join(__dirname, '..', 'simetricdb.sqlite');
 
 // Carpeta de respaldo (dentro de Documentos del usuario)
-const backupFolder = path.join(os.homedir(), 'Documents', 'SimetricGym_Backups');
+const backupFolder = path.join(os.homedir(), 'Documents', 'SimetricGym_Respaldo');
 
 // Crear la carpeta si no existe
 if (!fs.existsSync(backupFolder)) {
@@ -22,7 +22,7 @@ const timestamp = `${date.getFullYear()}-${(date.getMonth() + 1)
   .toString()
   .padStart(2, '0')}-${date.getMinutes().toString().padStart(2, '0')}`;
 
-const backupFile = path.join(backupFolder, `backup_simetricdb_${timestamp}.sqlite`);
+const backupFile = path.join(backupFolder, `Respaldo_simetricdb_${timestamp}.sqlite`);
 
 // Copiar archivo
 fs.copyFile(dbPath, backupFile, (err) => {
@@ -30,5 +30,5 @@ fs.copyFile(dbPath, backupFile, (err) => {
     console.error('Error al crear respaldo:', err);
     return;
   }
-  console.log('Respaldo creado exitosamente en:', backupFile);
+  console.log('Respaldo creado exitosamente en la carpeta Documentos.', backupFile);
 });
