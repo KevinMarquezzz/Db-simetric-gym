@@ -133,3 +133,9 @@ header #mainttl{
 .form-buttons button:hover {
     background-color: #aa0b0b;
 }
+input:disabled {
+    background-color: #1e1e1e;
+    color: #888;
+    cursor: not-allowed;
+  }
+  

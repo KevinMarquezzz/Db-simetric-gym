@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión de Registros</title>
+    <link rel="stylesheet" href="modulo_gestiondb.css">
+</head>
+<body>
+    <header>
+        <h1 id="mainttl">SIMETRIC GYM</h1>
+        <div class="img">
+            <img src="resources/logo2_simetricG.png" height="60px" width="60px" alt="">
+        </div>
+    </header>
+
+    <section id="new-client">
+        <div class="top">
+            <a href="index.html" class="back_btn">
+              <button><img class="icon" src="resources/arrow_back_left_icon.png" alt="Volver" height="40px" width="40px"></button>
+            </a>
+        </div>
+
+        <div class="form-container">
+            <h3>Gestión de Registros de la Base de Datos</h3>
+
+            <div class="form-group">
+                <label for="backup-btn">Respaldar Base de Datos</label>
+                <button id="btn-respaldar">📥 Respaldar</button>
+            </div>
+
+            <div class="form-group">
+                <label for="restore-btn">Recuperar Base de Datos</label>
+                <button id="restore-btn">🔄 Recuperar</button>
+            </div>
+
+        </div>
+    </section>
+
+    <script src="moduloGestionDb.js"></script>
+    <script src="backup.js"></script>
+</body>
+</html>

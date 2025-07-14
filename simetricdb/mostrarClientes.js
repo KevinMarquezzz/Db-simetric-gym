@@ -453,3 +453,45 @@ document.getElementById('detalle-cedula').addEventListener('input', (e) => {
 document.getElementById('detalle-telefono').addEventListener('input', (e) => {
   e.target.value = e.target.value.replace(/\D/g, '');
 });
+document.getElementById('referencia').addEventListener('input', (e) => {
+  e.target.value = e.target.value.replace(/\D/g, '');
+});
+document.getElementById('metodo_pago').addEventListener('change', function () {
+  const metodo = this.value;
+  const referenciaInput = document.getElementById('referencia');
+
+  if (metodo === 'transferencia' || metodo === 'pago_movil') {
+    referenciaInput.disabled = false;
+    referenciaInput.required = true;
+    referenciaInput.placeholder = 'Ingrese referencia';
+    referenciaInput.value = ''; // limpio en caso de venir de un método anterior
+  } else {
+    referenciaInput.disabled = true;
+    referenciaInput.required = false;
+    referenciaInput.placeholder = 'No aplica';
+    referenciaInput.value = ''; // limpio para evitar valores no válidos
+    referenciaInput.style.border = ''; // quito borde rojo si quedó de antes
+  }
+});
+document.getElementById('nueva_membresia').addEventListener('change', function () {
+  const tipo = this.value;
+  const montoInput = document.getElementById('monto_dolares');
+
+  const precios = {
+    'plan mensual': 35,
+    'diario': 4,
+    'semanal': 12,
+    'especial': 25,
+    'parejas': 60,
+    'familiar': 85,
+    'estudiantil': 65
+  };
+
+  // Buscar el precio asociado al tipo de membresía
+  const precio = precios[tipo.toLowerCase()] ?? 0;
+
+  montoInput.value = precio.toFixed(2);
+
+  // Dispara el cálculo automático de bolívares
+  calcularMontoBs();
+});

@@ -198,7 +198,7 @@ let historialVisible = false;
 document.getElementById('btn-historial').addEventListener('click', () => {
   const contenedor = document.getElementById('historial-ventas');
   const boton = document.getElementById('btn-historial');
-  const btnLimpiar = document.getElementById('btn-limpiar-historial');
+  //const btnLimpiar = document.getElementById('btn-limpiar-historial');
   const botonExportar = document.getElementById('btn-exportar-pdf');
 
   if (!historialVisible) {
@@ -215,7 +215,7 @@ document.getElementById('btn-historial').addEventListener('click', () => {
   
       contenedor.classList.remove('hidden');
       botonExportar.classList.remove('hidden');
-      btnLimpiar.classList.remove('hidden');
+      //btnLimpiar.classList.remove('hidden');
       contenedor.innerHTML = '<h3>Historial de Ventas</h3>';
   
       if (rows.length === 0) {
@@ -246,7 +246,7 @@ document.getElementById('btn-historial').addEventListener('click', () => {
               <div class="venta-item">
                 <p><strong>💼 Producto:</strong> ${row.nombre}</p>
                 <p><strong>📦 Cantidad:</strong> ${row.cantidad}</p>
-                <p><strong>💲 Total USD:</strong> ${row.total_venta.toFixed(2)}</p>
+                <p><strong>💲 Total USD:</strong> ${row.total_venta.toFixed(2)} USD</p>
                 <p><strong>💲 Total Bs:</strong> ${totalBs.toFixed(2)} Bs</p>
                 <p><strong>💱 Tasa:</strong> ${row.tasa_cambio.toFixed(2) || 'N/A'} Bs/USD</p>
                 <p><strong>📅 Fecha:</strong> ${fecha.toLocaleDateString()} ${fecha.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
@@ -271,7 +271,7 @@ document.getElementById('btn-historial').addEventListener('click', () => {
     boton.textContent = 'Ver Historial de Ventas';
     historialVisible = false;
   }
-  btnLimpiar.addEventListener('click', () => {
+  /*btnLimpiar.addEventListener('click', () => {
     const confirmacion = confirm('¿Estás seguro de que deseas eliminar TODO el historial de ventas? Esta acción no se puede deshacer.');
   
     if (confirmacion) {
@@ -285,8 +285,8 @@ document.getElementById('btn-historial').addEventListener('click', () => {
         alert('Historial de ventas eliminado correctamente.');
       });
     }
-  });
-});
+  });*/
+})
 
 
 document.getElementById('btn-exportar-pdf').addEventListener('click', () => {
