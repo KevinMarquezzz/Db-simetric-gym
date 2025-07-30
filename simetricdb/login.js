@@ -31,10 +31,23 @@ form.addEventListener('submit', (e) => {
             alert("Usuario no registrado.");
         } else {
             if (row.clave === clave) {
-                // Acceso correcto, redirigir
-                window.location.href = "index.html"; // Aquí va la página principal
-            } else {
-                alert("Contraseña incorrecta.");
+                // Acceso correcto, verificar si es el primer usuario registrado
+                db.get("SELECT id FROM usuarios ORDER BY id ASC LIMIT 1", (err, firstUser) => {
+                    if (err) {
+                        console.error("Error al verificar primer usuario:", err);
+                        alert("Ocurrió un error. Intenta nuevamente.");
+                        return;
+                    }
+            
+                    // Si el ID del usuario coincide con el primer usuario registrado
+                    if (row.id === firstUser.id) {
+                        // Es el administrador principal - redirigir a indexmain.html
+                        window.location.href = "indexmain.html";
+                    } else {
+                        // Es un administrador regular - redirigir a index.html
+                        window.location.href = "index.html";
+                    }
+                });
             }
         }
     });
