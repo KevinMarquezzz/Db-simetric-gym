@@ -1,6 +1,7 @@
 const sqlite3 = require("sqlite3").verbose()
-const path = require("path")
-const dbPath = path.resolve(__dirname, "database.db")
+
+// Conectar a la base de datos unificada
+const dbPath = "simetricdb.sqlite"
 const db = new sqlite3.Database(dbPath)
 
 // Función para obtener el usuario actual desde sessionStorage o localStorage

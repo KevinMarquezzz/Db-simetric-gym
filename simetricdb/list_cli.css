@@ -1,11 +1,12 @@
-*{
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-    font-family: sans-serif;
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: sans-serif;
 }
-header{
-  width: 100%;    
+
+header {
+  width: 100%;
   height: 15vh;
   background-color: #121212;
   border-bottom: 5px;
@@ -22,309 +23,388 @@ header{
   border-style: solid;
   position: relative;
 }
-header .img{
+
+header .img {
   position: absolute;
   right: 0;
   padding: 1rem;
 }
 
-header #mainttl{
+header #mainttl {
   color: #f2f3d9;
   font-size: 2rem;
-  
 }
-.top .back_btn{
-    
+
+.top .back_btn {
   position: absolute;
   left: 3%;
 }
-.back_btn button{
+
+.back_btn button {
   background: none;
   border: 2px solid #880808;
   border-radius: 5px;
-  transition: 
-      border-width 0.1s ease,
-      box-shadow 0.1s ease,
-      transform 0.1s ease;
+  transition: border-width 0.1s ease, box-shadow 0.1s ease, transform 0.1s ease;
 }
+
 .back_btn button:hover {
   cursor: pointer;
   border-width: 3px;
   box-shadow: 0 0 8px #88080899;
   transform: scale(1.01);
 }
+
 #client-list {
-    background: linear-gradient(to top, #11111199 50%, #12121299 50%), url(resources/ej_bg3.jpg);
-    background-size: cover;
-    background-position: center;
-    width: 100%;
-    min-height: 85vh;
-    padding: 2rem;
-    display: flex;
-    flex-direction: column;
+  background: linear-gradient(to top, #11111199 50%, #12121299 50%), url(resources/ej_bg3.jpg);
+  background-size: cover;
+  background-position: center;
+  width: 100%;
+  min-height: 85vh;
+  padding: 2rem;
+  display: flex;
+  flex-direction: column;
 }
+
 .list-header {
-    text-align: center;
-    margin-bottom: 2rem;
+  text-align: center;
+  margin-bottom: 2rem;
 }
 
 .list-header h2 {
-    color: #f2f3d9;
-    margin-bottom: 1rem;
+  color: #f2f3d9;
+  margin-bottom: 1rem;
 }
 
 .filters {
-    display: flex;
-    justify-content: center;
-    gap: 1rem;
-    flex-wrap: wrap;
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  flex-wrap: wrap;
 }
 
-.filters input, .filters select {
-    padding: 0.5rem;
-    border-radius: 5px;
-    border: 1px solid #880808;
-    background-color: #1e1e1e;
-    color: #f2f3d9;
+.filters input,
+.filters select {
+  padding: 0.5rem;
+  border-radius: 5px;
+  border: 1px solid #880808;
+  background-color: #1e1e1e;
+  color: #f2f3d9;
+  min-width: 150px;
 }
 
 .list-body {
-    background-color: #121212;
-    border-radius: 10px;
-    padding: 1rem;
-    max-height: 50vh;
-    color: #f2f3d9;
-    overflow-y: auto;
-    box-shadow: 0 0 10px #880808;
+  background-color: #121212;
+  border-radius: 10px;
+  padding: 1rem;
+  max-height: 50vh;
+  color: #f2f3d9;
+  overflow-y: auto;
+  box-shadow: 0 0 10px #880808;
 }
+
 .list-body::-webkit-scrollbar {
-    width: 6px;
-  }
-  
-  .list-body::-webkit-scrollbar-track {
-    background: #1e1e1e;
-  }
-  
-  .list-body::-webkit-scrollbar-thumb {
-    background-color: #880808;
-    border-radius: 10px;
-  }
-.table-header, .table-row {
-    display: grid;
-    grid-template-columns: repeat(7, 1fr);
-    padding: 0.75rem 0.5rem;
-    border-bottom: 1px solid #333;
-    align-items: center;
-    text-align: center;
+  width: 6px;
 }
-.form-btn{
+
+.list-body::-webkit-scrollbar-track {
+  background: #1e1e1e;
+}
+
+.list-body::-webkit-scrollbar-thumb {
+  background-color: #880808;
+  border-radius: 10px;
+}
+
+.table-header,
+.table-row {
+  display: grid;
+  grid-template-columns: 1.5fr 1.5fr 1fr 1fr 1fr 1fr 1fr 1fr 1.2fr;
+  padding: 0.75rem 0.5rem;
+  border-bottom: 1px solid #333;
+  align-items: center;
+  text-align: center;
+  font-size: 0.9rem;
+}
+
+.form-btn {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem; /* Espacio entre botones */
-  justify-content: center; /* Centra horizontalmente si lo deseas */
-  margin-top: 0.5rem; /* Opcional, separa del contenido superior */
-  
-}
-.ver-detalles, .actualizar-membresia {
-    padding: 0.3rem 0.6rem;
-    border: none;
-    background-color: #880808;
-    color: #fff;
-    border-radius: 4px;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
-    font-weight: bolder;
+  gap: 0.3rem;
+  justify-content: center;
+  margin-top: 0.5rem;
 }
 
-.ver-detalles:hover,  .actualizar-membresia:hover {
-    background-color: #aa1010;
+.ver-detalles,
+.actualizar-membresia {
+  padding: 0.3rem 0.6rem;
+  border: none;
+  background-color: #880808;
+  color: #fff;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  font-weight: bolder;
+  font-size: 0.8rem;
 }
+
+.ver-detalles:hover,
+.actualizar-membresia:hover {
+  background-color: #aa1010;
+}
+
 .table-header {
-    font-weight: bold;
-    background-color: #1e1e1e;
+  font-weight: bold;
+  background-color: #1e1e1e;
 }
-   .popup {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.7);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 1000;
+
+.popup {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.7);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.popup-contenido {
+  background-color: #1e1e1e;
+  padding: 2rem;
+  border-radius: 12px;
+  color: #f2f3d9;
+  width: 95%;
+  max-width: 500px;
+  max-height: 70vh;
+  overflow-y: auto;
+  position: relative;
+  box-shadow: 0 0 20px #880808;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+.popup-contenido::-webkit-scrollbar {
+  width: 6px;
+}
+
+.popup-contenido::-webkit-scrollbar-track {
+  background: #1e1e1e;
+}
+
+.popup-contenido::-webkit-scrollbar-thumb {
+  background-color: #880808;
+  border-radius: 10px;
+}
+
+.popup-contenido h3 {
+  text-align: center;
+  margin-bottom: 1rem;
+  font-size: 1.5rem;
+  border-bottom: 1px solid #880808;
+  padding-bottom: 0.5rem;
+}
+
+.cerrar-popup {
+  position: absolute;
+  top: 10px;
+  right: 15px;
+  font-size: 1.7rem;
+  color: #ff4d4d;
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+
+.cerrar-popup:hover {
+  transform: scale(1.2);
+}
+
+#form-editar-cliente {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+#form-editar-cliente label {
+  font-weight: bold;
+  margin-top: 0.25rem;
+  color: #f2f3d9;
+}
+
+#form-editar-cliente input,
+#form-editar-cliente select {
+  padding: 0.5rem;
+  border-radius: 6px;
+  border: 1px solid #880808;
+  background-color: #121212;
+  color: #f2f3d9;
+  font-size: 1rem;
+}
+
+#detalle-vencimiento {
+  display: inline-block;
+  background-color: #333;
+  padding: 0.5rem;
+  border-radius: 5px;
+  color: #f2f3d9;
+  margin-top: 0.25rem;
+}
+
+#form-editar-cliente button {
+  padding: 0.6rem;
+  border: none;
+  border-radius: 6px;
+  font-weight: bold;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  margin-right: 0.5rem;
+}
+
+#form-editar-cliente button[type="button"] {
+  background-color: #880808;
+  color: #fff;
+}
+
+#form-editar-cliente button[type="button"]:hover {
+  background-color: #aa1010;
+}
+
+#eliminar-cliente {
+  background-color: #444;
+  color: #f2f3d9;
+}
+
+#eliminar-cliente:hover {
+  background-color: #666;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
   }
-  
-  .popup-contenido {
-    background-color: #1e1e1e;
-    padding: 2rem;
-    border-radius: 12px;
-    color: #f2f3d9;
-    width: 95%;
-    max-width: 500px;
-    max-height: 70vh; /* Altura máxima */
-    overflow-y: auto;  /* Scroll si se desborda */
-    position: relative;
-    box-shadow: 0 0 20px #880808;
-    display: flex;
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.oculto {
+  display: none;
+}
+
+.estado-clase {
+  font-weight: bolder;
+}
+
+#form-actualizar-membresia {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+#form-actualizar-membresia label {
+  font-weight: bold;
+  margin-top: 0.25rem;
+  color: #f2f3d9;
+}
+
+.mes-header {
+  margin-top: 30px;
+  font-size: 18px;
+  color: #ff5555;
+  border-bottom: 2px solid #880808;
+  padding-bottom: 5px;
+}
+
+#form-actualizar-membresia select,
+input {
+  padding: 0.5rem;
+  border-radius: 6px;
+  border: 1px solid #880808;
+  background-color: #121212;
+  color: #f2f3d9;
+  font-size: 1rem;
+}
+
+#form-actualizar-membresia button[type="submit"] {
+  background-color: #880808;
+  color: #fff;
+  padding: 0.6rem;
+  border: none;
+  border-radius: 6px;
+  font-weight: bold;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+#form-actualizar-membresia button[type="submit"]:hover {
+  background-color: #aa1010;
+}
+
+/* Responsive para filtros */
+@media (max-width: 768px) {
+  .filters {
     flex-direction: column;
-    gap: 1rem;
-    animation: fadeIn 0.3s ease-in-out;
-  }
-  .popup-contenido::-webkit-scrollbar {
-    width: 6px;
-  }
-  
-  .popup-contenido::-webkit-scrollbar-track {
-    background: #1e1e1e;
-  }
-  
-  .popup-contenido::-webkit-scrollbar-thumb {
-    background-color: #880808;
-    border-radius: 10px;
-  }
-  
-  .popup-contenido h3 {
-    text-align: center;
-    margin-bottom: 1rem;
-    font-size: 1.5rem;
-    border-bottom: 1px solid #880808;
-    padding-bottom: 0.5rem;
-  }
-  
-  .cerrar-popup {
-    position: absolute;
-    top: 10px;
-    right: 15px;
-    font-size: 1.7rem;
-    color: #ff4d4d;
-    cursor: pointer;
-    transition: transform 0.2s;
-  }
-  
-  .cerrar-popup:hover {
-    transform: scale(1.2);
-  }
-  
-  #form-editar-cliente {
-    display: flex;
-    flex-direction: column;
-    gap: 0.75rem;
-  }
-  
-  #form-editar-cliente label {
-    font-weight: bold;
-    margin-top: 0.25rem;
-    color: #f2f3d9;
-  }
-  
-  #form-editar-cliente input,
-  #form-editar-cliente select {
-    padding: 0.5rem;
-    border-radius: 6px;
-    border: 1px solid #880808;
-    background-color: #121212;
-    color: #f2f3d9;
-    font-size: 1rem;
-  }
-  
-  #detalle-vencimiento {
-    display: inline-block;
-    background-color: #333;
-    padding: 0.5rem;
-    border-radius: 5px;
-    color: #f2f3d9;
-    margin-top: 0.25rem;
-  }
-  
-  #form-editar-cliente button {
-    padding: 0.6rem;
-    border: none;
-    border-radius: 6px;
-    font-weight: bold;
-    font-size: 1rem;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
-    margin-right: 0.5rem;
-  }
-  
-  #form-editar-cliente button[type="button"] {
-    background-color: #880808;
-    color: #fff;
-  }
-  
-  #form-editar-cliente button[type="button"]:hover {
-    background-color: #aa1010;
-  }
-  
-  #eliminar-cliente {
-    background-color: #444;
-    color: #f2f3d9;
-  }
-  
-  #eliminar-cliente:hover {
-    background-color: #666;
-  }
-  
-  /* Animación suave */
-  @keyframes fadeIn {
-    from {
-      opacity: 0;
-      transform: scale(0.95);
-    }
-    to {
-      opacity: 1;
-      transform: scale(1);
-    }
-  }
-  .oculto{
-    display: none;
-  }
-  .estado-clase{
-    font-weight: bolder;
+    gap: 0.8rem;
   }
 
-  #form-actualizar-membresia {
-    display: flex;
-    flex-direction: column;
-    gap: 0.75rem;
+  .filters input,
+  .filters select {
+    width: 100%;
+    max-width: 300px;
   }
-  
-  #form-actualizar-membresia label {
-    font-weight: bold;
-    margin-top: 0.25rem;
-    color: #f2f3d9;
+
+  .table-header,
+  .table-row {
+    grid-template-columns: 1fr;
+    text-align: left;
+    gap: 0.5rem;
   }
-  .mes-header {
-    margin-top: 30px;
-    font-size: 18px;
-    color: #ff5555;
-    border-bottom: 2px solid #880808;
-    padding-bottom: 5px;
+
+  .table-header div,
+  .table-row div {
+    padding: 0.2rem 0;
   }
-  #form-actualizar-membresia select, input  {
-    padding: 0.5rem;
-    border-radius: 6px;
-    border: 1px solid #880808;
-    background-color: #121212;
-    color: #f2f3d9;
-    font-size: 1rem;
-  }
-  
-  #form-actualizar-membresia button[type="submit"] {
-    background-color: #880808;
-    color: #fff;
-    padding: 0.6rem;
-    border: none;
-    border-radius: 6px;
-    font-weight: bold;
-    font-size: 1rem;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
-  }
-  
-  #form-actualizar-membresia button[type="submit"]:hover {
-    background-color: #aa1010;
-  }
-  
+}
+
+.generar-factura-btn {
+  background-color: #4caf50;
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  margin-top: 10px;
+  transition: background-color 0.3s ease;
+}
+
+.generar-factura-btn:hover {
+  background-color: #45a049;
+  transform: scale(1.02);
+}
+
+.pago-item {
+  background-color: #333;
+  padding: 15px;
+  border-radius: 8px;
+  margin-bottom: 15px;
+  border: 3px solid #880808;
+}
+
+.pago-item p {
+  margin-bottom: 8px;
+  line-height: 1.4;
+}
+
+.pago-item hr {
+  border: none;
+  border-top: 1px solid #ddd;
+  margin: 15px 0 10px 0;
+}

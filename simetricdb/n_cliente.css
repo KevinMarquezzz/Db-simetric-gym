@@ -58,7 +58,7 @@ header #mainttl{
         box-shadow 0.1s ease,
         transform 0.1s ease;
 }
-.back_btn button:hover {
+.back_btn button:hover { 
     cursor: pointer;
     border-width: 3px;
     box-shadow: 0 0 8px #88080899;

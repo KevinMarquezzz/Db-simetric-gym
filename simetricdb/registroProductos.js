@@ -1,96 +1,269 @@
-const sqlite3 = require('sqlite3').verbose();
+const sqlite3 = require("sqlite3").verbose()
 
-// Crear o conectar a la base de datos de productos
-let db = new sqlite3.Database('inventario.sqlite', (err) => {
+// Conectar a la base de datos unificada
+const db = new sqlite3.Database("simetricdb.sqlite", (err) => {
   if (err) {
-    console.error('Error al conectar con la base de datos:', err.message);
+    console.error("Error al conectar con la base de datos:", err.message)
   } else {
-    console.log('Conectado a la base de datos de productos.');
+    console.log("Conectado a la base de datos unificada.")
+    // Crear tablas necesarias
+    crearTablas()
   }
-});
+})
 
-// Crear tabla si no existe
-db.run(`
-  CREATE TABLE IF NOT EXISTS productos (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    nombre TEXT NOT NULL,
-    codigo TEXT UNIQUE NOT NULL,
-    categoria TEXT NOT NULL,
-    marca TEXT NOT NULL,
-    precio_compra REAL NOT NULL,
-    precio_venta REAL NOT NULL,
-    stock INTEGER NOT NULL,
-    unidad TEXT NOT NULL,
-    proveedor TEXT NOT NULL,
-    descripcion TEXT NOT NULL,
-    fecha_registro TEXT NOT NULL
-  )
-`);
-// Obtener el formulario
-document.querySelector('form').addEventListener('submit', (event) => {
-  event.preventDefault();
+// Crear tablas necesarias
+function crearTablas() {
+  // Tabla productos
+  db.run(`
+    CREATE TABLE IF NOT EXISTS productos (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      nombre TEXT NOT NULL,
+      codigo TEXT UNIQUE NOT NULL,
+      categoria TEXT NOT NULL,
+      marca TEXT NOT NULL,
+      precio_compra REAL NOT NULL,
+      precio_venta REAL NOT NULL,
+      stock INTEGER NOT NULL DEFAULT 0,
+      unidad TEXT NOT NULL,
+      proveedor TEXT NOT NULL,
+      descripcion TEXT NOT NULL,
+      fecha_registro TEXT NOT NULL
+    )`)
 
-  // Obtener valores del formulario
-  const nombre = document.getElementById('nombre').value.trim();
-  const codigo = document.getElementById('codigo').value.trim();
-  const categoria = document.getElementById('categoria').value.trim();
-  const marca = document.getElementById('marca').value.trim();
-  const precio_compra = parseFloat(document.getElementById('precio_compra').value);
-  const precio_venta = parseFloat((precio_compra * 1.30).toFixed(2));
-  const stock = parseInt(document.getElementById('stock').value);
-  const unidad = document.getElementById('unidad').value.trim();
-  const proveedor = document.getElementById('proveedor').value.trim();
-  const descripcion = document.getElementById('descripcion').value.trim();
+  // Tabla lotes
+  db.run(`
+    CREATE TABLE IF NOT EXISTS lotes (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      producto_id INTEGER NOT NULL,
+      cantidad_inicial INTEGER NOT NULL,
+      cantidad_disponible INTEGER NOT NULL,
+      precio_compra_unitario REAL NOT NULL,
+      proveedor TEXT NOT NULL,
+      numero_factura TEXT,
+      fecha_compra TEXT NOT NULL,
+      fecha_vencimiento TEXT,
+      observaciones TEXT,
+      usuario_registro TEXT,
+      activo INTEGER DEFAULT 1,
+      FOREIGN KEY (producto_id) REFERENCES productos(id)
+    )`)
 
-  const fecha_registro = obtenerFechaActual(); // YYYY-MM-DD
-
-  // Validar campos requeridos
-  if (!nombre || !codigo || !categoria || !marca || isNaN(precio_compra) || isNaN(precio_venta) || isNaN(stock) || !unidad || !proveedor || !descripcion) {
-    alert("Por favor completa todos los campos correctamente.");
-    return;
-  }
-
-  // Insertar en base de datos
-  setTimeout(() => {
-    db.run(`INSERT INTO productos 
-      (nombre, codigo, categoria, marca, precio_compra, precio_venta, stock, unidad, proveedor, descripcion, fecha_registro)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      [nombre, codigo, categoria, marca, precio_compra, precio_venta, stock, unidad, proveedor, descripcion, fecha_registro],
-      function (err) {
-        if (err) {
-          if (err.message.includes('UNIQUE')) {
-            alert('Error: Ya existe un producto con ese código.');
-          } else {
-            console.error('Error al guardar producto:', err.message);
-            alert('Error al guardar el producto.');
-          }
-        } else {
-          alert('Producto registrado exitosamente.');
-          event.target.reset(); // Limpiar formulario
-        }
-      });
-  }, 100);
-});
-
-function obtenerFechaActual() {
-  const hoy = new Date();
-  const year = hoy.getFullYear();
-  const month = String(hoy.getMonth() + 1).padStart(2, '0');
-  const day = String(hoy.getDate()).padStart(2, '0');
-  return `${year}-${month}-${day}`;
+  // Tabla movimientos_stock
+  db.run(`
+    CREATE TABLE IF NOT EXISTS movimientos_stock (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      producto_id INTEGER NOT NULL,
+      lote_id INTEGER,
+      tipo_movimiento TEXT NOT NULL,
+      cantidad INTEGER NOT NULL,
+      precio_unitario REAL,
+      motivo TEXT,
+      observaciones TEXT,
+      fecha_movimiento TEXT NOT NULL,
+      stock_anterior INTEGER NOT NULL,
+      stock_nuevo INTEGER NOT NULL,
+      usuario TEXT,
+      FOREIGN KEY (producto_id) REFERENCES productos(id),
+      FOREIGN KEY (lote_id) REFERENCES lotes(id)
+    )`)
 }
 
-document.getElementById('codigo').addEventListener('input', (e) => {
-  e.target.value = e.target.value.replace(/\D/g, '');
-});
-document.getElementById('precio_compra').addEventListener('input', () => {
-  const precioCompra = parseFloat(document.getElementById('precio_compra').value);
-  const campoVenta = document.getElementById('precio_venta');
+// Obtener el formulario
+document.querySelector("form").addEventListener("submit", (event) => {
+  event.preventDefault()
+
+  // Obtener valores del formulario
+  const nombre = document.getElementById("nombre").value.trim()
+  const codigo = document.getElementById("codigo").value.trim()
+  const categoria = document.getElementById("categoria").value.trim()
+  const marca = document.getElementById("marca").value.trim()
+  const precio_compra = Number.parseFloat(document.getElementById("precio_compra").value)
+  const precio_venta = Number.parseFloat((precio_compra * 1.3).toFixed(2))
+  const stock_inicial = Number.parseInt(document.getElementById("stock").value) || 0
+  const unidad = document.getElementById("unidad").value.trim()
+  const proveedor = document.getElementById("proveedor").value.trim()
+  const descripcion = document.getElementById("descripcion").value.trim()
+  const fecha_registro = obtenerFechaActual()
+
+  // Validar campos requeridos
+  if (
+    !nombre ||
+    !codigo ||
+    !categoria ||
+    !marca ||
+    isNaN(precio_compra) ||
+    isNaN(precio_venta) ||
+    isNaN(stock_inicial) ||
+    !unidad ||
+    !proveedor ||
+    !descripcion
+  ) {
+    alert("Por favor completa todos los campos correctamente.")
+    return
+  }
+
+  // Obtener usuario actual
+  const usuarioActual = sessionStorage.getItem("usuarioActual") || "Sistema"
+
+  // Insertar en base de datos con transacción
+  db.serialize(() => {
+    db.run("BEGIN TRANSACTION")
+
+    // 1. Insertar producto
+    db.run(
+      `INSERT INTO productos 
+       (nombre, codigo, categoria, marca, precio_compra, precio_venta, stock, unidad, proveedor, descripcion, fecha_registro)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [
+        nombre,
+        codigo,
+        categoria,
+        marca,
+        precio_compra,
+        precio_venta,
+        stock_inicial,
+        unidad,
+        proveedor,
+        descripcion,
+        fecha_registro,
+      ],
+      function (err) {
+        if (err) {
+          console.error("Error al guardar producto:", err.message)
+          db.run("ROLLBACK")
+
+          if (err.message.includes("UNIQUE")) {
+            alert("Error: Ya existe un producto con ese código.")
+          } else {
+            alert("Error al guardar el producto.")
+          }
+          return
+        }
+
+        const productoId = this.lastID
+        console.log(`✅ Producto creado con ID: ${productoId}`)
+
+        // 2. Si tiene stock inicial, crear lote inicial
+        if (stock_inicial > 0) {
+          db.run(
+            `INSERT INTO lotes 
+             (producto_id, cantidad_inicial, cantidad_disponible, precio_compra_unitario, 
+              proveedor, fecha_compra, observaciones, usuario_registro)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+            [
+              productoId,
+              stock_inicial,
+              stock_inicial,
+              precio_compra,
+              proveedor,
+              fecha_registro,
+              "Lote inicial del producto",
+              usuarioActual,
+            ],
+            function (err) {
+              if (err) {
+                console.error("Error al crear lote inicial:", err.message)
+                db.run("ROLLBACK")
+                alert("Error al crear el lote inicial del producto.")
+                return
+              }
+
+              const loteId = this.lastID
+
+              // Si se creó un lote inicial, el precio ya está correcto
+              // No necesitamos recalcular porque es el primer lote
+              console.log(
+                `✅ Lote inicial creado con precio base: $${precio_compra.toFixed(2)} → $${precio_venta.toFixed(2)}`,
+              )
+              console.log(`✅ Lote inicial creado con ID: ${loteId}`)
+
+              // 3. Registrar movimiento de stock
+              db.run(
+                `INSERT INTO movimientos_stock 
+                 (producto_id, lote_id, tipo_movimiento, cantidad, precio_unitario, 
+                  motivo, fecha_movimiento, stock_anterior, stock_nuevo, usuario)
+                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+                [
+                  productoId,
+                  loteId,
+                  "entrada",
+                  stock_inicial,
+                  precio_compra,
+                  "Stock inicial del producto",
+                  fecha_registro,
+                  0,
+                  stock_inicial,
+                  usuarioActual,
+                ],
+                (err) => {
+                  if (err) {
+                    console.error("Error al registrar movimiento inicial:", err.message)
+                    db.run("ROLLBACK")
+                    alert("Error al registrar el movimiento inicial.")
+                    return
+                  }
+
+                  // Confirmar transacción
+                  db.run("COMMIT", (err) => {
+                    if (err) {
+                      console.error("Error al confirmar transacción:", err.message)
+                      alert("Error al confirmar el registro.")
+                      return
+                    }
+
+                    console.log(`✅ Producto registrado exitosamente: ${nombre}`)
+                    alert(
+                      `✅ Producto registrado exitosamente.\n\n` +
+                        `Producto: ${nombre}\n` +
+                        `Código: ${codigo}\n` +
+                        `Stock inicial: ${stock_inicial} ${unidad}\n` +
+                        `Lote inicial creado: #${loteId}`,
+                    )
+                    event.target.reset()
+                  })
+                },
+              )
+            },
+          )
+        } else {
+          // Si no tiene stock inicial, solo confirmar el producto
+          db.run("COMMIT", (err) => {
+            if (err) {
+              console.error("Error al confirmar transacción:", err.message)
+              alert("Error al confirmar el registro.")
+              return
+            }
+
+            console.log(`✅ Producto registrado exitosamente: ${nombre}`)
+            alert(`✅ Producto registrado exitosamente: ${nombre}`)
+            event.target.reset()
+          })
+        }
+      },
+    )
+  })
+})
+
+function obtenerFechaActual() {
+  const hoy = new Date()
+  const year = hoy.getFullYear()
+  const month = String(hoy.getMonth() + 1).padStart(2, "0")
+  const day = String(hoy.getDate()).padStart(2, "0")
+  return `${year}-${month}-${day}`
+}
+
+document.getElementById("codigo").addEventListener("input", (e) => {
+  e.target.value = e.target.value.replace(/\D/g, "")
+})
+
+document.getElementById("precio_compra").addEventListener("input", () => {
+  const precioCompra = Number.parseFloat(document.getElementById("precio_compra").value)
+  const campoVenta = document.getElementById("precio_venta")
 
   if (!isNaN(precioCompra)) {
-    const precioVenta = (precioCompra * 1.30).toFixed(2);
-    campoVenta.value = precioVenta;
+    const precioVenta = (precioCompra * 1.3).toFixed(2)
+    campoVenta.value = precioVenta
   } else {
-    campoVenta.value = '';
+    campoVenta.value = ""
   }
-});
+})

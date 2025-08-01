@@ -12,7 +12,7 @@
       <img src="resources/logo2_simetricG.png" height="60px" width="60px" alt="Logo">
     </div>
   </header>
-  
+    
   <section id="inventory-list">
     <div class="top">
       <a href="menu_inventario.html" class="back_btn">
@@ -41,7 +41,7 @@
       </div>
     </div>
   </section>
-  
+    
   <!-- POPUP DE DETALLES -->
   <div id="popup-detalles-inv" class="popup oculto">
     <div class="popup-contenido">
@@ -54,37 +54,44 @@
             <input type="text" id="detalle-codigo" disabled>
             <label>Nombre:</label>
             <input type="text" id="detalle-nombre" disabled>
-            <label>Proveedor:</label>
+            <label>Último proveedor:</label>
             <input type="text" id="detalle-proveedor" disabled>
             <label>Marca:</label>
             <input type="text" id="detalle-marca" disabled>
           </div>
           <div>
             <label>Stock Total:</label>
-            <input type="number" id="detalle-stock" disabled>                 
-            <label>Precio de compra ($):</label>
+            <input type="number" id="detalle-stock" disabled>                             
+            <label>Último precio de compra ($):</label>
             <input type="number" id="detalle-precio-compra" disabled>
             <label>Precio de venta ($):</label>
-            <input type="number" id="detalle-precio" disabled>                
+            <input type="number" id="detalle-precio" disabled>                            
             <label>Unidad:</label>
             <input type="text" id="detalle-unidad" disabled>
-          </div>                  
+          </div>                          
         </div>
         <label>Descripción:</label>
         <textarea name="descripcion" id="detalle-descripcion" disabled></textarea>
-        <div style="margin-top: 10px;">
+                
+        <!-- Historial de lotes -->
+        <div style="margin-top: 20px;">
+          <button type="button" id="btn-historial-stock">Ver Historial de Lotes</button>
+          <div id="historial-stock" class="historial-container hidden"></div>
+        </div>
+                
+        <div style="margin-top: 10px;">                    
           <button type="button" id="eliminar-producto">Eliminar</button>
         </div>
       </form>
     </div>
   </div>
 
-  <!-- POPUP DE ACTUALIZAR STOCK -->
+  <!-- POPUP DE NUEVA COMPRA/ENTRADA DE STOCK -->
   <div id="popup-actualizar-stock" class="popup oculto">
     <div class="popup-contenido popup-stock">
       <span class="cerrar-popup" id="cerrar-popup-stock">&times;</span>
-      <h3>📦 Actualizar Stock</h3>
-      
+      <h3>📦 Registrar Nuevo Lote</h3>
+            
       <div class="producto-info">
         <div class="info-item">
           <span class="info-label">Producto:</span>
@@ -101,37 +108,39 @@
       </div>
 
       <form id="form-actualizar-stock">
-        <div class="stock-options">
-          <div class="option-group">
-            <input type="radio" id="opcion-agregar" name="tipo-operacion" value="agregar" checked>
-            <label for="opcion-agregar" class="option-label agregar">
-              <span class="option-icon">➕</span>
-              <span class="option-text">Agregar al stock</span>
-            </label>
+        <div class="compra-section">
+          <h4>📋 Datos del Nuevo Lote</h4>
+                    
+          <div class="form-row">
+            <div class="form-group">
+              <label for="cantidad-compra">Cantidad del lote:</label>
+              <input type="number" id="cantidad-compra" min="1" step="1" required>
+            </div>
+            <div class="form-group">
+              <label for="precio-compra-unitario">Precio unitario de compra ($):</label>
+              <input type="number" id="precio-compra-unitario" min="0" step="0.01" required>
+            </div>
           </div>
-          
-          <div class="option-group">
-            <input type="radio" id="opcion-reducir" name="tipo-operacion" value="reducir">
-            <label for="opcion-reducir" class="option-label reducir">
-              <span class="option-icon">➖</span>
-              <span class="option-text">Reducir del stock</span>
-            </label>
-          </div>
-          
-          <div class="option-group">
-            <input type="radio" id="opcion-establecer" name="tipo-operacion" value="establecer">
-            <label for="opcion-establecer" class="option-label establecer">
-              <span class="option-icon">🎯</span>
-              <span class="option-text">Establecer cantidad exacta</span>
-            </label>
-          </div>
-        </div>
 
-        <div class="cantidad-input">
-          <label for="cantidad-stock">Cantidad:</label>
-          <input type="number" id="cantidad-stock" min="0" step="1" required>
-          <div class="cantidad-helper">
-            <span id="operacion-preview"></span>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="proveedor-compra">Proveedor:</label>
+              <input type="text" id="proveedor-compra" required>
+            </div>
+            <div class="form-group">
+              <label for="fecha-compra">Fecha de compra:</label>
+              <input type="date" id="fecha-compra" required>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="numero-factura">Número de factura/referencia:</label>
+            <input type="text" id="numero-factura" placeholder="Opcional">
+          </div>
+
+          <div class="form-group">
+            <label for="observaciones-compra">Observaciones:</label>
+            <textarea id="observaciones-compra" placeholder="Detalles adicionales sobre la compra..." rows="3"></textarea>
           </div>
         </div>
 
@@ -141,15 +150,27 @@
             <span id="preview-actual" class="preview-value"></span>
           </div>
           <div class="preview-item">
-            <span class="preview-label">Stock después del cambio:</span>
+            <span class="preview-label">Cantidad del lote:</span>
+            <span id="preview-cantidad" class="preview-value">0</span>
+          </div>
+          <div class="preview-item">
+            <span class="preview-label">Stock después del lote:</span>
             <span id="preview-nuevo" class="preview-value preview-highlight"></span>
+          </div>
+          <div class="preview-item">
+            <span class="preview-label">Total de la compra:</span>
+            <span id="preview-total" class="preview-value preview-money">$0.00</span>
+          </div>
+          <div class="preview-item">
+            <span class="preview-label">Nuevo precio de venta:</span>
+            <span id="preview-precio-proyectado" class="preview-value preview-money">$0.00</span>
           </div>
         </div>
 
         <div class="form-buttons">
-          <button type="submit" id="btn-confirmar-stock">
+          <button type="submit" id="btn-confirmar-compra">
             <span class="btn-icon">✅</span>
-            Confirmar Cambio
+            Registrar Lote
           </button>
           <button type="button" id="btn-cancelar-stock">
             <span class="btn-icon">❌</span>

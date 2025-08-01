@@ -12,67 +12,102 @@
         <div class="img">
           <img src="resources/logo2_simetricG.png" height="60px" width="60px" alt="">
         </div>
-      </header>
-    
-      <section id="new-product">
+    </header>
+          
+    <section id="new-product">
         <div class="top">
           <a href="menu_inventario.html" class="back_btn">
             <button><img class="icon" src="resources/arrow_back_left_icon.png" alt="" height="40px" width="40px"></button>
           </a>
         </div>
-
+        
         <section id="sales-section">
             <div class="section-header">
-              <h2>Gestión de Ventas</h2>
+              <h2>🛒 Gestión de Ventas</h2>
+              <p class="subtitle">Sistema PEPS - Primero en Entrar, Primero en Salir</p>
             </div>
-        
+                    
             <div class="filters">
               <input type="text" id="search-code" placeholder="Buscar por código">
-          <input type="text" id="search-name" placeholder="Buscar por nombre">
+              <input type="text" id="search-name" placeholder="Buscar por nombre">
+              <select id="filter-stock">
+                <option value="todos">Todos los productos</option>
+                <option value="disponibles">Solo con stock</option>
+                <option value="agotados">Sin stock</option>
+              </select>
             </div>
-        
+                    
             <!-- Lista de productos disponibles -->
             <div class="product-list">
               <div id="lista-productos">
                 <!-- Productos se insertan aquí dinámicamente con JS -->
               </div>
             </div>
-        
+                    
             <!-- Modal para cantidad -->
-      <div id="cantidad-modal" class="modal hidden">
-         <div class="modal-content">
-          <h3>¿Cuántas unidades deseas vender?</h3>
-          <input type="number" id="cantidad-input" min="1">
-          <div class="modal-actions">
-          <button id="btn-cancelar-cantidad">Cancelar</button>
-          <button id="btn-confirmar-cantidad">Confirmar</button>
-          </div>
-          </div>
-      </div>
+            <div id="cantidad-modal" class="modal hidden">
+                <div class="modal-content">
+                  <span class="cerrar-modal" id="cerrar-cantidad-modal">&times;</span>
+                  <h3>🛒 Agregar al Carrito</h3>
+                  <div class="producto-modal-info">
+                    <p><strong>Producto:</strong> <span id="modal-producto-nombre"></span></p>
+                    <p><strong>Stock disponible:</strong> <span id="modal-stock-disponible"></span> unidades</p>
+                    <p><strong>Precio:</strong> $<span id="modal-precio"></span></p>
+                  </div>
+                  <div class="cantidad-input-group">
+                    <label for="cantidad-input">Cantidad a vender:</label>
+                    <input type="number" id="cantidad-input" min="1" max="1" value="1">
+                  </div>
+                  <div class="modal-actions">
+                    <button id="btn-cancelar-cantidad">❌ Cancelar</button>
+                    <button id="btn-confirmar-cantidad">✅ Agregar</button>
+                  </div>
+                </div>
+            </div>
 
             <!-- Carrito de compra -->
             <div class="cart-container">
-              <h3>Carrito de Venta</h3>
+              <h3>🛒 Carrito de Venta</h3>
               <div class="cart-items" id="venta-carrito-container">
-                <!-- Items del carrito se insertan aquí -->
+                <p class="cart-empty">El carrito está vacío</p>
               </div>
-              <p><strong>Total:</strong> <span id="venta-total">0.00</span> Bs</p>
+              
+              <div class="cart-summary">
+                <div class="total-line">
+                  <span><strong>Total USD:</strong></span>
+                  <span id="total-usd">$0.00</span>
+                </div>
+                <div class="total-line">
+                  <span><strong>Total Bs:</strong></span>
+                  <span id="total-bs">0.00 Bs</span>
+                </div>
+              </div>
 
               <div id="tasa-container">
-                <label for="tasa-cambio">Inserte tasa del día (Bs/USD): </label> 
-                <input type="number" id="tasa-cambio" value="" placeholder="0.00" step="0.01" min="0" style="width: 100px;" required>
+                <label for="tasa-cambio">💱 Tasa del día (Bs/USD):</label>
+                <input type="number" id="tasa-cambio" placeholder="0.00" step="0.01" min="0" required>
               </div>
-
-              <button class="btn-confirmar-venta">Confirmar Venta</button>
               
-              <button id="btn-historial">Ver Historial de Ventas</button>
-              <button id="btn-exportar-pdf" class="hidden">Exportar a PDF</button>
-             <!--  <button id="btn-limpiar-historial" class="hidden">Limpiar Historial</button>-->
+              <div class="cart-actions">
+                <button class="btn-confirmar-venta" id="btn-confirmar-venta">
+                  <span class="btn-icon">💳</span>
+                  Confirmar Venta
+                </button>
+                <button class="btn-limpiar-carrito" id="btn-limpiar-carrito">
+                  <span class="btn-icon">🗑️</span>
+                  Limpiar Carrito
+                </button>
+              </div>
+                            
+              <button id="btn-historial">📊 Ver Historial de Ventas</button>
+              <div class="historial-actions hidden" id="historial-actions">
+                <button id="btn-exportar-pdf">📄 Exportar PDF</button>
+              </div>
               <div id="historial-ventas" class="historial-container hidden"></div>
-
-            </div> 
-          </section>
-        
-          <script src="moduloVentas.js"></script>
-        </body>
-        </html>
+            </div>
+        </section>
+    </section>
+                  
+    <script src="moduloVentas.js"></script>
+</body>
+</html>
