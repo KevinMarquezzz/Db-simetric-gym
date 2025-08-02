@@ -79,17 +79,17 @@ function crearTablasLotes() {
 function cargarInventarioDesdeDB() {
   // Cargar productos con stock calculado desde lotes
   const query = `
-    SELECT 
-      p.*,
-      COALESCE(SUM(l.cantidad_disponible), 0) as stock_total,
-      COUNT(l.id) as total_lotes,
-      MIN(l.fecha_compra) as primer_lote,
-      MAX(l.fecha_compra) as ultimo_lote
-    FROM productos p
-    LEFT JOIN lotes l ON p.id = l.producto_id AND l.activo = 1
-    GROUP BY p.id
-    ORDER BY p.nombre
-  `
+  SELECT 
+    p.*,
+    COALESCE(SUM(l.cantidad_disponible), 0) as stock_total,
+    COUNT(CASE WHEN l.cantidad_disponible > 0 THEN 1 END) as total_lotes,
+    MIN(l.fecha_compra) as primer_lote,
+    MAX(l.fecha_compra) as ultimo_lote
+  FROM productos p
+  LEFT JOIN lotes l ON p.id = l.producto_id AND l.activo = 1
+  GROUP BY p.id
+  ORDER BY p.nombre
+`
 
   db.all(query, [], (err, rows) => {
     if (err) {
@@ -196,14 +196,14 @@ document.addEventListener("click", (event) => {
     WHERE cantidad_disponible > 0 AND activo = 1
   ) l_reciente ON p.id = l_reciente.producto_id AND l_reciente.rn = 1
   WHERE p.id = ?
-  GROUP BY p.id
-`
+  GROUP BY p.id`
 
     db.get(query, [id], (err, p) => {
       if (err) {
         console.error("Error al obtener detalles:", err.message)
         return
       }
+
       if (p) {
         document.getElementById("detalle-codigo").value = p.codigo
         document.getElementById("detalle-nombre").value = p.nombre
@@ -216,6 +216,7 @@ document.addEventListener("click", (event) => {
         document.getElementById("detalle-stock").value = p.stock_total
         document.getElementById("detalle-marca").value = p.marca
         document.getElementById("detalle-unidad").value = p.unidad
+
         document.getElementById("popup-detalles-inv").classList.remove("oculto")
       }
     })
@@ -226,8 +227,58 @@ document.addEventListener("click", (event) => {
     const id = event.target.dataset.id
     abrirPopupNuevaCompra(id)
   }
+
+  // Manejar clic en botón eliminar lote
+  if (event.target.closest(".btn-eliminar-lote")) {
+    const boton = event.target.closest(".btn-eliminar-lote")
+    const loteId = boton.dataset.loteId
+    mostrarModalConfirmacionEliminacion(loteId)
+  }
+
+  // MANEJAR CLIC EN BOTÓN EXPORTAR PDF (DELEGACIÓN DE EVENTOS)
+  if (event.target.id === "btn-exportar-pdf") {
+    event.preventDefault()
+    event.stopPropagation()
+
+    // Usar los lotes almacenados en la variable global
+    if (lotesActuales && lotesActuales.length > 0) {
+      exportarHistorialTexto(lotesActuales)
+    } else {
+      // Si no hay lotes en memoria, hacer consulta directa
+      db.all(
+        `SELECT
+          l.*,
+         (l.cantidad_inicial - l.cantidad_disponible) as cantidad_vendida,
+         CASE
+            WHEN l.cantidad_disponible > 0 THEN 'Activo'
+           ELSE 'Agotado'
+         END as estado
+       FROM lotes l
+       WHERE l.producto_id = ? AND l.activo = 1
+       ORDER BY 
+         CASE WHEN l.cantidad_disponible > 0 THEN 0 ELSE 1 END,
+         l.fecha_compra ASC, 
+         l.id ASC`,
+        [productoIdSeleccionado],
+        (err, lotes) => {
+          if (err) {
+            console.error("Error al obtener lotes para exportar:", err.message)
+            alert("Error al obtener los datos de lotes")
+            return
+          }
+
+          if (lotes && lotes.length > 0) {
+            exportarHistorialTexto(lotes)
+          } else {
+            alert("No hay lotes para exportar")
+          }
+        },
+      )
+    }
+  }
 })
 
+// Función para obtener los lotes del historial actual
 // Función para abrir popup de nueva compra
 function abrirPopupNuevaCompra(productoId) {
   const query = `
@@ -315,6 +366,7 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     })
   }
+
   if (precioInput) {
     precioInput.addEventListener("input", actualizarPreviewCompra)
     precioInput.addEventListener("input", () => {
@@ -349,7 +401,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 })
 
-// Función para registrar nuevo lote (compra)
+// Función para registrar nuevo lote (compra) - SIN NÚMERO DE FACTURA
 function registrarNuevoLote() {
   if (!productoSeleccionadoStock) {
     alert("Error: No se ha seleccionado un producto")
@@ -360,7 +412,6 @@ function registrarNuevoLote() {
   const precioUnitario = Number.parseFloat(document.getElementById("precio-compra-unitario").value)
   const proveedor = document.getElementById("proveedor-compra").value.trim()
   const fechaCompra = document.getElementById("fecha-compra").value
-  const numeroFactura = document.getElementById("numero-factura").value.trim()
   const observaciones = document.getElementById("observaciones-compra").value.trim()
 
   // Validaciones
@@ -420,19 +471,18 @@ function registrarNuevoLote() {
   db.serialize(() => {
     db.run("BEGIN TRANSACTION")
 
-    // 1. Crear nuevo lote
+    // 1. Crear nuevo lote (SIN numero_factura)
     db.run(
-      `INSERT INTO lotes 
-         (producto_id, cantidad_inicial, cantidad_disponible, precio_compra_unitario, 
-          proveedor, numero_factura, fecha_compra, observaciones, usuario_registro)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      `INSERT INTO lotes
+        (producto_id, cantidad_inicial, cantidad_disponible, precio_compra_unitario,
+         proveedor, fecha_compra, observaciones, usuario_registro)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         productoSeleccionadoStock.id,
         cantidad,
         cantidad, // cantidad_disponible = cantidad_inicial al crear
         precioUnitario,
         proveedor,
-        numeroFactura,
         fechaCompra,
         observaciones,
         usuarioActual,
@@ -449,12 +499,12 @@ function registrarNuevoLote() {
 
         const loteId = this.lastID
 
-        // 2. Registrar movimiento de stock
+        // 2. Registrar movimiento de stock (SIN referencia a factura)
         db.run(
-          `INSERT INTO movimientos_stock 
-             (producto_id, lote_id, tipo_movimiento, cantidad, precio_unitario, 
-              motivo, observaciones, fecha_movimiento, stock_anterior, stock_nuevo, usuario)
-             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+          `INSERT INTO movimientos_stock
+            (producto_id, lote_id, tipo_movimiento, cantidad, precio_unitario,
+             motivo, observaciones, fecha_movimiento, stock_anterior, stock_nuevo, usuario)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
           [
             productoSeleccionadoStock.id,
             loteId,
@@ -462,7 +512,7 @@ function registrarNuevoLote() {
             cantidad,
             precioUnitario,
             "Nueva compra - Lote creado",
-            `Proveedor: ${proveedor}${numeroFactura ? ` | Factura: ${numeroFactura}` : ""}`,
+            `Proveedor: ${proveedor}`,
             fechaCompra,
             stockActual,
             nuevoStock,
@@ -496,6 +546,7 @@ function registrarNuevoLote() {
                   `Cantidad: ${cantidad} unidades\n` +
                   `Precio unitario: $${precioUnitario.toFixed(2)}\n` +
                   `Total de compra: $${totalCompra.toFixed(2)}\n` +
+                  `Proveedor: ${proveedor}\n` +
                   `Stock anterior: ${stockActual}\n` +
                   `Stock nuevo: ${nuevoStock}`,
               )
@@ -504,13 +555,11 @@ function registrarNuevoLote() {
               const stockElement = document.getElementById(`stock-${productoSeleccionadoStock.id}`)
               if (stockElement) {
                 stockElement.textContent = nuevoStock
-
                 // Efecto visual de actualización
                 stockElement.style.backgroundColor = "#4CAF50"
                 stockElement.style.color = "white"
                 stockElement.style.fontWeight = "bold"
                 stockElement.style.transition = "all 0.3s ease"
-
                 setTimeout(() => {
                   stockElement.style.backgroundColor = ""
                   stockElement.style.color = ""
@@ -538,97 +587,431 @@ function registrarNuevoLote() {
 
 // Función para mostrar historial de lotes
 let historialStockVisible = false
+let lotesActuales = [] // Variable global para almacenar los lotes
 
-document.addEventListener("click", (event) => {
-  if (event.target.id === "btn-historial-stock") {
-    const contenedor = document.getElementById("historial-stock")
-    const boton = document.getElementById("btn-historial-stock")
+document.getElementById("btn-historial-stock").addEventListener("click", () => {
+  const contenedor = document.getElementById("historial-stock")
+  const boton = document.getElementById("btn-historial-stock")
 
-    if (!historialStockVisible) {
-      // Cargar historial de lotes
-      db.all(
-        `SELECT 
-           l.*,
-           (l.cantidad_inicial - l.cantidad_disponible) as cantidad_vendida,
-           CASE 
-             WHEN l.cantidad_disponible > 0 THEN 'Activo'
-             ELSE 'Agotado'
-           END as estado
-         FROM lotes l
-         WHERE l.producto_id = ? AND l.activo = 1
-         ORDER BY l.fecha_compra ASC, l.id ASC`,
-        [productoIdSeleccionado],
-        (err, lotes) => {
-          if (err) {
-            console.error("Error al cargar historial de lotes:", err.message)
-            return
-          }
+  if (!historialStockVisible) {
+    // Cargar historial de lotes con nuevo ordenamiento: activos primero, agotados después
+    db.all(
+      `SELECT
+        l.*,
+       (l.cantidad_inicial - l.cantidad_disponible) as cantidad_vendida,
+       CASE
+          WHEN l.cantidad_disponible > 0 THEN 'Activo'
+         ELSE 'Agotado'
+       END as estado
+     FROM lotes l
+     WHERE l.producto_id = ? AND l.activo = 1
+     ORDER BY 
+       CASE WHEN l.cantidad_disponible > 0 THEN 0 ELSE 1 END,  -- Activos primero (0), agotados después (1)
+       l.fecha_compra ASC, 
+       l.id ASC`,
+      [productoIdSeleccionado],
+      (err, lotes) => {
+        if (err) {
+          console.error("Error al cargar historial de lotes:", err.message)
+          return
+        }
 
-          contenedor.classList.remove("hidden")
-          contenedor.innerHTML = "<h3>📦 Historial de Lotes (PEPS)</h3>"
+        // Guardar lotes en variable global
+        lotesActuales = lotes
 
-          if (lotes.length === 0) {
-            contenedor.innerHTML += "<p>No hay lotes registrados para este producto.</p>"
-          } else {
-            // Mostrar resumen
-            const totalStock = lotes.reduce((sum, lote) => sum + lote.cantidad_disponible, 0)
-            const totalLotes = lotes.length
-            const lotesActivos = lotes.filter((l) => l.cantidad_disponible > 0).length
+        contenedor.classList.remove("hidden")
+        contenedor.innerHTML = `
+  <div class="historial-header">
+    <h3>📦 Historial de Lotes (PEPS)</h3>
+    <button id="btn-exportar-pdf" class="btn-exportar" title="Exportar historial">
+      📄 Exportar 
+    </button>
+  </div>
+`
+
+        // Separar lotes activos y agotados correctamente
+        const lotesActivos = lotes.filter((l) => l.cantidad_disponible > 0)
+        const lotesAgotados = lotes.filter((l) => l.cantidad_disponible === 0)
+        const totalStock = lotes.reduce((sum, lote) => sum + lote.cantidad_disponible, 0)
+
+        // Mostrar resumen
+        contenedor.innerHTML += `
+  <div class="resumen-lotes">
+    <p><strong>📊 Resumen:</strong></p>
+    <p>• Total de lotes: ${lotes.length}</p>
+    <p>• Lotes activos: ${lotesActivos.length}</p>
+    <p>• Lotes agotados: ${lotesAgotados.length}</p>
+    <p>• Stock total disponible: ${totalStock} unidades</p>
+  </div>
+`
+
+        // Mostrar sección de lotes activos si existen
+        if (lotesActivos.length > 0) {
+          contenedor.innerHTML += `
+    <div class="seccion-titulo activos">🟢 Lotes Activos (${lotesActivos.length})</div>
+  `
+
+          lotesActivos.forEach((lote, index) => {
+            const fechaFormateada = new Date(lote.fecha_compra).toLocaleDateString("es-ES")
+            const ordenPEPS = index + 1
 
             contenedor.innerHTML += `
-              <div class="resumen-lotes">
-                <p><strong>📊 Resumen:</strong></p>
-                <p>• Total de lotes: ${totalLotes}</p>
-                <p>• Lotes activos: ${lotesActivos}</p>
-                <p>• Stock total disponible: ${totalStock} unidades</p>
-              </div>
-            `
+      <div class="lote-item lote-activo" data-lote-id="${lote.id}">
+        <div class="lote-header">
+          <span class="lote-orden">Lote #${lote.id} (PEPS: ${ordenPEPS}°)</span>
+          <div class="lote-header-right">
+            <span class="lote-estado">Activo</span>
+            <span class="lote-fecha">${fechaFormateada}</span>
+          </div>
+        </div>
+        <div class="lote-detalle">
+          <div class="lote-info-grid">
+            <div>
+              <p><strong>Cantidad inicial:</strong> ${lote.cantidad_inicial} unidades</p>
+              <p><strong>Disponible:</strong> ${lote.cantidad_disponible} unidades</p>
+              <p><strong>Vendido:</strong> ${lote.cantidad_vendida} unidades</p>
+            </div>
+            <div>
+              <p><strong>Precio unitario:</strong> $${lote.precio_compra_unitario.toFixed(2)}</p>
+              <p><strong>Proveedor:</strong> ${lote.proveedor}</p>
+            </div>
+          </div>
+          ${lote.observaciones ? `<p><strong>Observaciones:</strong> ${lote.observaciones}</p>` : ""}
+          <p class="lote-usuario"><strong>Registrado por:</strong> ${lote.usuario_registro || "Sistema"}</p>
+        </div>
+      </div>
+    `
+          })
+        }
 
-            // Mostrar cada lote
-            lotes.forEach((lote, index) => {
-              const fechaFormateada = new Date(lote.fecha_compra).toLocaleDateString("es-ES")
-              const estadoClass = lote.cantidad_disponible > 0 ? "lote-activo" : "lote-agotado"
-              const ordenPEPS = index + 1
-
-              contenedor.innerHTML += `
-                <div class="lote-item ${estadoClass}">
-                  <div class="lote-header">
-                    <span class="lote-orden">Lote #${lote.id} (PEPS: ${ordenPEPS}°)</span>
-                    <span class="lote-estado">${lote.estado}</span>
-                    <span class="lote-fecha">${fechaFormateada}</span>
-                  </div>
-                  <div class="lote-detalle">
-                    <div class="lote-info-grid">
-                      <div>
-                        <p><strong>Cantidad inicial:</strong> ${lote.cantidad_inicial} unidades</p>
-                        <p><strong>Disponible:</strong> ${lote.cantidad_disponible} unidades</p>
-                        <p><strong>Vendido:</strong> ${lote.cantidad_vendida} unidades</p>
-                      </div>
-                      <div>
-                        <p><strong>Precio unitario:</strong> $${lote.precio_compra_unitario.toFixed(2)}</p>
-                        <p><strong>Proveedor:</strong> ${lote.proveedor}</p>
-                        ${lote.numero_factura ? `<p><strong>Factura:</strong> ${lote.numero_factura}</p>` : ""}
-                      </div>
-                    </div>
-                    ${lote.observaciones ? `<p><strong>Observaciones:</strong> ${lote.observaciones}</p>` : ""}
-                    <p class="lote-usuario"><strong>Registrado por:</strong> ${lote.usuario_registro || "Sistema"}</p>
-                  </div>
-                </div>
-              `
-            })
+        // Mostrar sección de lotes agotados si existen
+        if (lotesAgotados.length > 0) {
+          // Agregar separador visual si hay lotes activos
+          if (lotesActivos.length > 0) {
+            contenedor.innerHTML += `<div class="separador-lotes"></div>`
           }
-          boton.textContent = "Ocultar Historial"
-          historialStockVisible = true
-        },
-      )
-    } else {
-      contenedor.classList.add("hidden")
-      contenedor.innerHTML = ""
-      boton.textContent = "Ver Historial de Stock"
-      historialStockVisible = false
-    }
+          contenedor.innerHTML += `
+    <div class="seccion-titulo agotados">🔴 Lotes Agotados (${lotesAgotados.length})</div>
+  `
+
+          lotesAgotados.forEach((lote) => {
+            const fechaFormateada = new Date(lote.fecha_compra).toLocaleDateString("es-ES")
+
+            contenedor.innerHTML += `
+      <div class="lote-item lote-agotado" data-lote-id="${lote.id}">
+        <div class="lote-header">
+          <span class="lote-orden">Lote #${lote.id}</span>
+          <div class="lote-header-right">
+            <span class="lote-estado">Agotado</span>
+            <span class="lote-fecha">${fechaFormateada}</span>
+          </div>
+        </div>
+        <div class="lote-detalle">
+          <div class="lote-info-grid">
+            <div>
+              <p><strong>Cantidad inicial:</strong> ${lote.cantidad_inicial} unidades</p>
+              <p><strong>Disponible:</strong> ${lote.cantidad_vendida} unidades</p>
+            </div>
+            <div>
+              <p><strong>Precio unitario:</strong> $${lote.precio_compra_unitario.toFixed(2)}</p>
+              <p><strong>Proveedor:</strong> ${lote.proveedor}</p>
+            </div>
+          </div>
+          ${lote.observaciones ? `<p><strong>Observaciones:</strong> ${lote.observaciones}</p>` : ""}
+          <p class="lote-usuario"><strong>Registrado por:</strong> ${lote.usuario_registro || "Sistema"}</p>
+        </div>
+      </div>
+    `
+          })
+        }
+
+        boton.textContent = "Ocultar Historial"
+        historialStockVisible = true
+
+        // NO AGREGAR EVENT LISTENER AQUÍ - SE MANEJA CON DELEGACIÓN DE EVENTOS
+      },
+    )
+  } else {
+    contenedor.classList.add("hidden")
+    contenedor.innerHTML = ""
+    boton.textContent = "Ver Historial de lotes"
+    historialStockVisible = false
+    lotesActuales = [] // Limpiar datos
   }
 })
+
+// Función para exportar historial como texto plano (SIMPLIFICADA Y CORREGIDA)
+function exportarHistorialTexto(lotes) {
+  // Verificar que tenemos lotes
+  if (!lotes || lotes.length === 0) {
+    alert("No hay lotes para exportar")
+    return
+  }
+
+  console.log("Exportando lotes:", lotes.length) // Debug
+
+  // Generar PDF directamente
+  generarPDFHistorial(lotes)
+}
+
+// En la función generarPDFHistorial, reemplazar la lógica de ventana con:
+
+// Función separada para generar el PDF
+function generarPDFHistorial(lotes) {
+  db.get(
+    `SELECT nombre, codigo, categoria, marca FROM productos WHERE id = ?`,
+    [productoIdSeleccionado],
+    (err, producto) => {
+      if (err) {
+        console.error("Error al obtener información del producto:", err.message)
+        alert("Error al cargar información del producto")
+        return
+      }
+
+      if (!producto) {
+        alert("Producto no encontrado")
+        return
+      }
+
+      // Generar nombre de archivo normalizado
+      const fechaActual = new Date().toISOString().split("T")[0] // YYYY-MM-DD
+      const nombreProductoLimpio = producto.nombre.replace(/[^a-zA-Z0-9]/g, "_").toLowerCase()
+      const nombreArchivo = `lote-${nombreProductoLimpio}-${fechaActual}.pdf`
+
+      // Generar contenido HTML para PDF
+      const fechaExportacion = new Date().toLocaleDateString("es-ES", {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+      })
+
+      const lotesActivos = lotes.filter((l) => l.cantidad_disponible > 0)
+      const lotesAgotados = lotes.filter((l) => l.cantidad_disponible === 0)
+      const totalStock = lotes.reduce((sum, lote) => sum + lote.cantidad_disponible, 0)
+      const totalInversion = lotes.reduce((sum, lote) => sum + lote.cantidad_inicial * lote.precio_compra_unitario, 0)
+
+      let contenidoHTML = `
+        <!DOCTYPE html>
+        <html lang="es">
+        <head>
+          <meta charset="UTF-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <title>Historial de Lotes - ${producto.nombre}</title>
+          <style>
+            body {
+              font-family: Arial, sans-serif;
+              margin: 0;
+              padding: 20px;
+              color: #333;
+              line-height: 1.4;
+            }
+            .header {
+              text-align: center;
+              border-bottom: 3px solid #880808;
+              padding-bottom: 20px;
+              margin-bottom: 30px;
+            }
+            .logo {
+              font-size: 28px;
+              font-weight: bold;
+              color: #880808;
+              margin-bottom: 5px;
+            }
+            .subtitle {
+              color: #666;
+              font-size: 14px;
+            }
+            .producto-info {
+              background-color: #f9f9f9;
+              padding: 15px;
+              border-radius: 8px;
+              margin-bottom: 20px;
+              border-left: 4px solid #880808;
+            }
+            .resumen {
+              background-color: #e8f5e8;
+              padding: 15px;
+              border-radius: 8px;
+              margin-bottom: 20px;
+              border-left: 4px solid #4caf50;
+            }
+            .seccion-titulo {
+              font-size: 18px;
+              font-weight: bold;
+              margin: 20px 0 10px 0;
+              padding: 10px;
+              border-radius: 5px;
+            }
+            .activos {
+              background-color: rgba(76, 175, 80, 0.1);
+              color: #4caf50;
+              border: 1px solid #4caf50;
+            }
+            .agotados {
+              background-color: rgba(244, 67, 54, 0.1);
+              color: #f44336;
+              border: 1px solid #f44336;
+            }
+            .lote-item {
+              background-color: #f5f5f5;
+              padding: 15px;
+              margin-bottom: 15px;
+              border-radius: 8px;
+              border-left: 4px solid #4caf50;
+            }
+            .lote-agotado {
+              border-left-color: #f44336;
+              opacity: 0.8;
+            }
+            .lote-header {
+              display: flex;
+              justify-content: space-between;
+              align-items: center;
+              margin-bottom: 10px;
+              font-weight: bold;
+            }
+            .lote-detalle {
+              display: grid;
+              grid-template-columns: 1fr 1fr;
+              gap: 15px;
+              margin-bottom: 10px;
+            }
+            .footer {
+              text-align: center;
+              border-top: 1px solid #ddd;
+              padding-top: 20px;
+              color: #666;
+              font-size: 12px;
+              margin-top: 30px;
+            }
+            @media print {
+              body { margin: 0; }
+              .header { page-break-after: avoid; }
+            }
+          </style>
+        </head>
+        <body>
+          <div class="header">
+            <div class="logo">🏋️ SIMETRIC GYM C.A.</div>
+            <div class="subtitle">Historial de Lotes de Inventario</div>
+          </div>
+
+          <div class="producto-info">
+            <h3>📦 Información del Producto</h3>
+            <p><strong>Nombre:</strong> ${producto.nombre}</p>
+            <p><strong>Código:</strong> ${producto.codigo}</p>
+            <p><strong>Categoría:</strong> ${producto.categoria}</p>
+            <p><strong>Marca:</strong> ${producto.marca}</p>
+          </div>
+
+          <div class="resumen">
+            <h3>📊 Resumen General</h3>
+            <p><strong>Total de lotes:</strong> ${lotes.length}</p>
+            <p><strong>Lotes activos:</strong> ${lotesActivos.length}</p>
+            <p><strong>Lotes agotados:</strong> ${lotesAgotados.length}</p>
+            <p><strong>Stock disponible:</strong> ${totalStock} unidades</p>
+            <p><strong>Inversión total:</strong> $${totalInversion.toFixed(2)}</p>
+            <p><strong>Fecha de exportación:</strong> ${fechaExportacion}</p>
+          </div>
+      `
+
+      // Lotes activos
+      if (lotesActivos.length > 0) {
+        contenidoHTML += `<div class="seccion-titulo activos">🟢 Lotes Activos (${lotesActivos.length})</div>`
+
+        lotesActivos.forEach((lote, index) => {
+          const fechaFormateada = new Date(lote.fecha_compra).toLocaleDateString("es-ES")
+          contenidoHTML += `
+            <div class="lote-item">
+              <div class="lote-header">
+                <span>Lote #${lote.id} (PEPS: ${index + 1}°)</span>
+                <span>${fechaFormateada}</span>
+              </div>
+              <div class="lote-detalle">
+                <div>
+                  <p><strong>Cantidad inicial:</strong> ${lote.cantidad_inicial} unidades</p>
+                  <p><strong>Disponible:</strong> ${lote.cantidad_disponible} unidades</p>
+                  <p><strong>Vendido:</strong> ${lote.cantidad_vendida} unidades</p>
+                </div>
+                <div>
+                  <p><strong>Precio unitario:</strong> $${lote.precio_compra_unitario.toFixed(2)}</p>
+                  <p><strong>Proveedor:</strong> ${lote.proveedor}</p>
+                  <p><strong>Registrado por:</strong> ${lote.usuario_registro || "Sistema"}</p>
+                </div>
+              </div>
+              ${lote.observaciones ? `<p><strong>Observaciones:</strong> ${lote.observaciones}</p>` : ""}
+            </div>
+          `
+        })
+      }
+
+      // Lotes agotados
+      if (lotesAgotados.length > 0) {
+        contenidoHTML += `<div class="seccion-titulo agotados">🔴 Lotes Agotados (${lotesAgotados.length})</div>`
+
+        lotesAgotados.forEach((lote) => {
+          const fechaFormateada = new Date(lote.fecha_compra).toLocaleDateString("es-ES")
+          contenidoHTML += `
+            <div class="lote-item lote-agotado">
+              <div class="lote-header">
+                <span>Lote #${lote.id}</span>
+                <span>${fechaFormateada}</span>
+              </div>
+              <div class="lote-detalle">
+                <div>
+                  <p><strong>Cantidad inicial:</strong> ${lote.cantidad_inicial} unidades</p>
+                  <p><strong>Vendido:</strong> ${lote.cantidad_vendida} unidades</p>
+                </div>
+                <div>
+                  <p><strong>Precio unitario:</strong> $${lote.precio_compra_unitario.toFixed(2)}</p>
+                  <p><strong>Proveedor:</strong> ${lote.proveedor}</p>
+                  <p><strong>Registrado por:</strong> ${lote.usuario_registro || "Sistema"}</p>
+                </div>
+              </div>
+              ${lote.observaciones ? `<p><strong>Observaciones:</strong> ${lote.observaciones}</p>` : ""}
+            </div>
+          `
+        })
+      }
+
+      contenidoHTML += `
+          <div class="footer">
+            <p>Reporte generado por SIMETRIC GYM - Sistema de Gestión de Inventario</p>
+            <p>Fecha de generación: ${new Date().toLocaleDateString("es-ES")} a las ${new Date().toLocaleTimeString("es-ES")}</p>
+          </div>
+        </body>
+        </html>
+      `
+
+      // Crear ventana de impresión con nombre de archivo sugerido
+      const ventanaHistorial = window.open("", "", "width=800,height=600")
+
+      if (!ventanaHistorial) {
+        alert(
+          "❌ Error: El navegador bloqueó la ventana emergente. Por favor, permite ventanas emergentes para este sitio.",
+        )
+        return
+      }
+
+      // Establecer título de la ventana con el nombre sugerido
+      ventanaHistorial.document.title = nombreArchivo.replace(".pdf", "")
+      ventanaHistorial.document.write(contenidoHTML)
+      ventanaHistorial.document.close()
+
+      // Dar tiempo para que se cargue el contenido y luego mostrar diálogo de impresión
+      setTimeout(() => {
+        ventanaHistorial.print()
+
+        // Mostrar alerta con instrucciones de guardado
+        setTimeout(() => {
+          
+        }, 500)
+      }, 500)
+    },
+  )
+}
 
 // Cerrar popup de detalles
 document.getElementById("cerrar-popup-inv").addEventListener("click", () => {
@@ -637,7 +1020,7 @@ document.getElementById("cerrar-popup-inv").addEventListener("click", () => {
   historialContenedor.innerHTML = ""
   document.getElementById("btn-historial-stock").textContent = "Ver Historial de Stock"
   historialStockVisible = false
-
+  lotesActuales = [] // Limpiar datos
   document.getElementById("popup-detalles-inv").classList.add("oculto")
 })
 
@@ -716,8 +1099,8 @@ function calcularPrecioVentaProyectado(productoId) {
 
   // Obtener lotes actuales para calcular promedio ponderado proyectado
   db.all(
-    `SELECT cantidad_disponible, precio_compra_unitario 
-     FROM lotes 
+    `SELECT cantidad_disponible, precio_compra_unitario
+     FROM lotes
      WHERE producto_id = ? AND cantidad_disponible > 0 AND activo = 1`,
     [productoId],
     (err, lotes) => {
@@ -787,4 +1170,10 @@ function actualizarPrecioVentaPromedio(productoId) {
       )
     }
   })
+}
+
+// Función para mostrar modal de confirmación de eliminación
+function mostrarModalConfirmacionEliminacion(loteId) {
+  // Implementación de la función aquí
+  console.log(`Mostrar modal de confirmación para eliminar lote ${loteId}`)
 }

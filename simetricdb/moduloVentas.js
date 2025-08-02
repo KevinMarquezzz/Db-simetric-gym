@@ -13,28 +13,123 @@ const db = new sqlite3.Database("simetricdb.sqlite", (err) => {
 
 // Crear tabla de ventas si no existe
 function crearTablaVentas() {
-  db.run(
-    `
-    CREATE TABLE IF NOT EXISTS ventas (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      fecha_venta TEXT NOT NULL,
-      total_usd REAL NOT NULL,
-      total_bs REAL NOT NULL,
-      tasa_cambio REAL NOT NULL,
-      usuario TEXT,
-      observaciones TEXT
-    )
-  `,
-    (err) => {
-      if (err) {
-        console.error("Error creando tabla ventas:", err.message)
-      } else {
-        console.log("✅ Tabla ventas verificada")
-      }
-    },
-  )
+  // Primero verificar si la tabla existe y tiene las columnas nuevas
+  db.get("PRAGMA table_info(ventas)", (err, result) => {
+    if (err) {
+      console.error("Error verificando estructura de tabla:", err.message)
+      return
+    }
 
-  // Tabla detalle de ventas (productos vendidos)
+    // Si la tabla no existe o necesita actualización, crearla/actualizarla
+    db.serialize(() => {
+      // Crear tabla temporal con la nueva estructura
+      db.run(
+        `
+        CREATE TABLE IF NOT EXISTS ventas_new (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          fecha_venta TEXT NOT NULL,
+          cliente_nombre TEXT NOT NULL,
+          cliente_cedula TEXT NOT NULL,
+          total_usd REAL NOT NULL,
+          total_bs REAL NOT NULL,
+          tasa_cambio REAL NOT NULL,
+          metodo_pago TEXT NOT NULL,
+          referencia_pago TEXT,
+          usuario TEXT,
+          observaciones TEXT
+        )
+      `,
+        (err) => {
+          if (err) {
+            console.error("Error creando tabla ventas_new:", err.message)
+            return
+          }
+
+          // Verificar si la tabla original existe
+          db.get("SELECT name FROM sqlite_master WHERE type='table' AND name='ventas'", (err, row) => {
+            if (err) {
+              console.error("Error verificando tabla original:", err.message)
+              return
+            }
+
+            if (row) {
+              // La tabla existe, migrar datos
+              console.log("🔄 Migrando datos de ventas...")
+              db.run(
+                `
+              INSERT INTO ventas_new (id, fecha_venta, cliente_nombre, cliente_cedula, total_usd, total_bs, tasa_cambio, metodo_pago, referencia_pago, usuario, observaciones)
+              SELECT 
+                id, 
+                fecha_venta, 
+                COALESCE(cliente_nombre, 'Cliente General') as cliente_nombre,
+                COALESCE(cliente_cedula, 'N/A') as cliente_cedula,
+                total_usd, 
+                total_bs, 
+                tasa_cambio,
+                COALESCE(metodo_pago, 'efectivo') as metodo_pago,
+                referencia_pago,
+                usuario, 
+                observaciones
+              FROM ventas
+            `,
+                (err) => {
+                  if (err) {
+                    console.error("Error migrando datos:", err.message)
+                    // Si falla la migración, crear tabla vacía
+                    db.run("DROP TABLE IF EXISTS ventas_new")
+                    db.run(`
+                  CREATE TABLE ventas (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    fecha_venta TEXT NOT NULL,
+                    cliente_nombre TEXT NOT NULL,
+                    cliente_cedula TEXT NOT NULL,
+                    total_usd REAL NOT NULL,
+                    total_bs REAL NOT NULL,
+                    tasa_cambio REAL NOT NULL,
+                    metodo_pago TEXT NOT NULL,
+                    referencia_pago TEXT,
+                    usuario TEXT,
+                    observaciones TEXT
+                  )
+                `)
+                    console.log("✅ Tabla ventas creada (nueva estructura)")
+                    return
+                  }
+
+                  // Eliminar tabla original y renombrar la nueva
+                  db.run("DROP TABLE ventas", (err) => {
+                    if (err) {
+                      console.error("Error eliminando tabla original:", err.message)
+                      return
+                    }
+
+                    db.run("ALTER TABLE ventas_new RENAME TO ventas", (err) => {
+                      if (err) {
+                        console.error("Error renombrando tabla:", err.message)
+                        return
+                      }
+                      console.log("✅ Tabla ventas actualizada con nueva estructura")
+                    })
+                  })
+                },
+              )
+            } else {
+              // La tabla no existe, renombrar la nueva
+              db.run("ALTER TABLE ventas_new RENAME TO ventas", (err) => {
+                if (err) {
+                  console.error("Error renombrando tabla nueva:", err.message)
+                  return
+                }
+                console.log("✅ Tabla ventas creada con nueva estructura")
+              })
+            }
+          })
+        },
+      )
+    })
+  })
+
+  // Tabla detalle de ventas (sin cambios)
   db.run(
     `
     CREATE TABLE IF NOT EXISTS detalle_ventas (
@@ -70,7 +165,7 @@ function cargarProductosVenta() {
     SELECT 
       p.*,
       COALESCE(SUM(l.cantidad_disponible), 0) as stock_total,
-      COUNT(l.id) as total_lotes,
+      COUNT(CASE WHEN l.cantidad_disponible > 0 THEN 1 END) as total_lotes,
       MIN(l.fecha_compra) as primer_lote,
       MAX(l.fecha_compra) as ultimo_lote,
     -- Calcular precio promedio ponderado actual
@@ -192,9 +287,9 @@ function renderizarCarrito() {
 
   carrito.forEach((item, index) => {
     const subtotal = item.precio_venta * item.cantidad
-
     const div = document.createElement("div")
     div.classList.add("cart-item")
+
     div.innerHTML = `
       <div class="cart-item-info">
         <div class="cart-item-name">${item.nombre}</div>
@@ -236,7 +331,6 @@ function actualizarTotales() {
 function modificarCantidadCarrito(index, cambio) {
   const item = carrito[index]
   const producto = productos.find((p) => p.id === item.id)
-
   if (!producto) return
 
   const nuevaCantidad = item.cantidad + cambio
@@ -307,6 +401,7 @@ function obtenerLotesDisponibles(productoId, cantidadNecesaria) {
           ...lote,
           cantidad_a_usar: cantidadDelLote,
         })
+
         cantidadRestante -= cantidadDelLote
       }
 
@@ -319,8 +414,8 @@ function obtenerLotesDisponibles(productoId, cantidadNecesaria) {
   })
 }
 
-// Confirmar venta
-async function confirmarVenta() {
+// Abrir modal de datos de venta
+function abrirModalDatosVenta() {
   if (carrito.length === 0) {
     alert("El carrito está vacío.")
     return
@@ -333,7 +428,95 @@ async function confirmarVenta() {
     return
   }
 
-  const btnConfirmar = document.getElementById("btn-confirmar-venta")
+  // Calcular totales para mostrar en el modal
+  let totalUSD = 0
+  carrito.forEach((item) => {
+    totalUSD += item.precio_venta * item.cantidad
+  })
+  const totalBs = totalUSD * tasa
+
+  // Actualizar información en el modal
+  document.getElementById("modal-total-usd").textContent = totalUSD.toFixed(2)
+  document.getElementById("modal-total-bs").textContent = totalBs.toFixed(2)
+  document.getElementById("modal-tasa").textContent = tasa.toFixed(2)
+
+  // Limpiar formulario
+  document.getElementById("form-datos-venta").reset()
+
+  // Ocultar campo de referencia inicialmente
+  document.getElementById("referencia-container").style.display = "none"
+
+  // Mostrar modal
+  document.getElementById("modal-datos-venta").classList.remove("hidden")
+  document.getElementById("cliente-nombre").focus()
+}
+
+// Manejar cambio de método de pago
+function manejarCambioMetodoPago() {
+  const metodoPago = document.getElementById("metodo-pago").value
+  const referenciaContainer = document.getElementById("referencia-container")
+  const referenciaInput = document.getElementById("referencia-pago")
+
+  if (metodoPago === "pago_movil" || metodoPago === "transferencia") {
+    referenciaContainer.style.display = "block"
+    referenciaInput.required = true
+  } else {
+    referenciaContainer.style.display = "none"
+    referenciaInput.required = false
+    referenciaInput.value = ""
+  }
+}
+
+// Confirmar venta con datos completos
+async function confirmarVentaCompleta() {
+  // Validar datos del formulario
+  const clienteNombre = document.getElementById("cliente-nombre").value.trim()
+  const clienteCedula = document.getElementById("cliente-cedula").value.trim()
+  const metodoPago = document.getElementById("metodo-pago").value
+  const referenciaPago = document.getElementById("referencia-pago").value.trim()
+
+  if (!clienteNombre) {
+    alert("Por favor ingrese el nombre del cliente")
+    document.getElementById("cliente-nombre").focus()
+    return
+  }
+
+  if (!clienteCedula) {
+    alert("Por favor ingrese la cédula del cliente")
+    document.getElementById("cliente-cedula").focus()
+    return
+  }
+
+  // Validar formato de cédula (solo números, entre 7 y 8 dígitos)
+  if (!/^\d{7,8}$/.test(clienteCedula)) {
+    alert("La cédula debe contener entre 7 y 8 dígitos numéricos")
+    document.getElementById("cliente-cedula").focus()
+    return
+  }
+
+  if (!metodoPago) {
+    alert("Por favor seleccione un método de pago")
+    document.getElementById("metodo-pago").focus()
+    return
+  }
+
+  if ((metodoPago === "pago_movil" || metodoPago === "transferencia") && !referenciaPago) {
+    alert("Por favor ingrese la referencia del pago")
+    document.getElementById("referencia-pago").focus()
+    return
+  }
+
+  // Validar formato de referencia para pago móvil y transferencia
+  if ((metodoPago === "pago_movil" || metodoPago === "transferencia") && referenciaPago) {
+    if (!/^\d{6,12}$/.test(referenciaPago)) {
+      alert("La referencia debe contener entre 6 y 12 dígitos numéricos")
+      document.getElementById("referencia-pago").focus()
+      return
+    }
+  }
+
+  // El resto de la función permanece igual...
+  const btnConfirmar = document.getElementById("btn-confirmar-venta-final")
   const textoOriginal = btnConfirmar.innerHTML
   btnConfirmar.disabled = true
   btnConfirmar.innerHTML = '<span class="btn-icon">⏳</span>Procesando...'
@@ -344,6 +527,7 @@ async function confirmarVenta() {
     carrito.forEach((item) => {
       totalUSD += item.precio_venta * item.cantidad
     })
+    const tasa = Number.parseFloat(document.getElementById("tasa-cambio").value)
     const totalBs = totalUSD * tasa
 
     // Obtener usuario actual
@@ -368,13 +552,14 @@ async function confirmarVenta() {
     db.serialize(() => {
       db.run("BEGIN TRANSACTION")
 
-      // 1. Insertar venta principal
+      // 1. Insertar venta principal con datos completos
       db.run(
         `
-        INSERT INTO ventas (fecha_venta, total_usd, total_bs, tasa_cambio, usuario)
-        VALUES (?, ?, ?, ?, ?)
+        INSERT INTO ventas (fecha_venta, cliente_nombre, cliente_cedula, total_usd, total_bs, 
+                           tasa_cambio, metodo_pago, referencia_pago, usuario)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
       `,
-        [fechaVenta, totalUSD, totalBs, tasa, usuarioActual],
+        [fechaVenta, clienteNombre, clienteCedula, totalUSD, totalBs, tasa, metodoPago, referenciaPago, usuarioActual],
         function (err) {
           if (err) {
             console.error("Error insertando venta:", err.message)
@@ -414,7 +599,7 @@ async function confirmarVenta() {
                   // Actualizar cantidad disponible en el lote
                   db.run(
                     `
-                UPDATE lotes 
+                UPDATE lotes
                 SET cantidad_disponible = cantidad_disponible - ?
                 WHERE id = ?
               `,
@@ -429,8 +614,8 @@ async function confirmarVenta() {
                       // Registrar movimiento de stock
                       db.run(
                         `
-                  INSERT INTO movimientos_stock 
-                  (producto_id, lote_id, tipo_movimiento, cantidad, precio_unitario, 
+                  INSERT INTO movimientos_stock
+                  (producto_id, lote_id, tipo_movimiento, cantidad, precio_unitario,
                    motivo, fecha_movimiento, stock_anterior, stock_nuevo, usuario)
                   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 `,
@@ -440,7 +625,7 @@ async function confirmarVenta() {
                           "salida",
                           lote.cantidad_a_usar,
                           producto.precio_venta,
-                          `Venta #${ventaId}`,
+                          `Venta #${ventaId} - Cliente: ${clienteNombre} (${clienteCedula})`,
                           fechaVenta,
                           lote.cantidad_disponible,
                           lote.cantidad_disponible - lote.cantidad_a_usar,
@@ -449,7 +634,6 @@ async function confirmarVenta() {
                         (err) => {
                           if (err) {
                             console.error("Error registrando movimiento:", err.message)
-                            db.run("ROLLBACK")
                             return
                           }
 
@@ -464,14 +648,21 @@ async function confirmarVenta() {
                                 return
                               }
 
-                              // Éxito
-                              alert(
-                                `✅ Venta registrada exitosamente\n\n` +
-                                  `Venta #${ventaId}\n` +
-                                  `Total: $${totalUSD.toFixed(2)} USD (${totalBs.toFixed(2)} Bs)\n` +
-                                  `Tasa: ${tasa.toFixed(2)} Bs/USD\n` +
-                                  `Productos: ${carrito.length}`,
-                              )
+                              // Éxito - Cerrar modal y mostrar opciones
+                              document.getElementById("modal-datos-venta").classList.add("hidden")
+
+                              // Mostrar opciones de factura
+                              mostrarOpcionesFactura(ventaId, {
+                                clienteNombre,
+                                clienteCedula,
+                                totalUSD,
+                                totalBs,
+                                tasa,
+                                metodoPago,
+                                referenciaPago,
+                                fechaVenta,
+                                productos: carrito,
+                              })
 
                               // Limpiar carrito y recargar datos
                               carrito = []
@@ -500,6 +691,235 @@ async function confirmarVenta() {
   }
 }
 
+// Mostrar opciones de factura después de la venta
+function mostrarOpcionesFactura(ventaId, datosVenta) {
+  const mensaje =
+    `✅ Venta registrada exitosamente\n\n` +
+    `Venta #${ventaId}\n` +
+    `Cliente: ${datosVenta.clienteNombre}\n` +
+    `Total: $${datosVenta.totalUSD.toFixed(2)} USD (${datosVenta.totalBs.toFixed(2)} Bs)\n` +
+    `Método de pago: ${obtenerNombreMetodoPago(datosVenta.metodoPago)}\n` +
+    `${datosVenta.referenciaPago ? `Referencia: ${datosVenta.referenciaPago}\n` : ""}\n` +
+    `¿Desea generar la factura?`
+
+  const generarFactura = confirm(mensaje)
+
+  if (generarFactura) {
+    generarFacturaPDF(ventaId, datosVenta)
+  }
+}
+
+// Generar factura en PDF
+function generarFacturaPDF(ventaId, datosVenta) {
+  // Crear contenido HTML para la factura
+  const fechaFormateada = new Date(datosVenta.fechaVenta).toLocaleDateString("es-ES")
+  const horaActual = new Date().toLocaleTimeString("es-ES")
+
+  let contenidoFactura = `
+    <!DOCTYPE html>
+    <html lang="es">
+    <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>Factura #${ventaId} - SIMETRIC GYM</title>
+      <style>
+        body {
+          font-family: Arial, sans-serif;
+          margin: 0;
+          padding: 20px;
+          color: #333;
+          line-height: 1.4;
+        }
+        .header {
+          text-align: center;
+          border-bottom: 3px solid #880808;
+          padding-bottom: 20px;
+          margin-bottom: 30px;
+        }
+        .logo {
+          font-size: 28px;
+          font-weight: bold;
+          color: #880808;
+          margin-bottom: 5px;
+        }
+        .subtitle {
+          color: #666;
+          font-size: 14px;
+        }
+        .factura-info {
+          display: flex;
+          justify-content: space-between;
+          margin-bottom: 30px;
+        }
+        .info-section {
+          flex: 1;
+        }
+        .info-section h3 {
+          color: #880808;
+          margin-bottom: 10px;
+          font-size: 16px;
+        }
+        .info-item {
+          margin-bottom: 5px;
+          font-size: 14px;
+        }
+        .productos-table {
+          width: 100%;
+          border-collapse: collapse;
+          margin-bottom: 30px;
+        }
+        .productos-table th,
+        .productos-table td {
+          border: 1px solid #ddd;
+          padding: 10px;
+          text-align: left;
+        }
+        .productos-table th {
+          background-color: #880808;
+          color: white;
+          font-weight: bold;
+        }
+        .productos-table tr:nth-child(even) {
+          background-color: #f9f9f9;
+        }
+        .totales {
+          text-align: right;
+          margin-bottom: 30px;
+        }
+        .total-line {
+          margin-bottom: 8px;
+          font-size: 16px;
+        }
+        .total-final {
+          font-size: 20px;
+          font-weight: bold;
+          color: #880808;
+          border-top: 2px solid #880808;
+          padding-top: 10px;
+        }
+        .footer {
+          text-align: center;
+          border-top: 1px solid #ddd;
+          padding-top: 20px;
+          color: #666;
+          font-size: 12px;
+        }
+        .metodo-pago {
+          background-color: #f0f0f0;
+          padding: 15px;
+          border-radius: 5px;
+          margin-bottom: 20px;
+        }
+        .referencia {
+          background-color: #e8f5e8;
+          padding: 10px;
+          border-left: 4px solid #4caf50;
+          margin-top: 10px;
+        }
+      </style>
+    </head>
+    <body>
+      <div class="header">
+        <div class="logo">🏋️ SIMETRIC GYM C.A.</div>
+        <div class="subtitle">Sistema de Gestión Administrativa</div>
+      </div>
+
+      <div class="factura-info">
+        <div class="info-section">
+          <h3>📄 Información de la Factura</h3>
+          <div class="info-item"><strong>Factura #:</strong> ${ventaId}</div>
+          <div class="info-item"><strong>Fecha:</strong> ${fechaFormateada}</div>
+          <div class="info-item"><strong>Hora:</strong> ${horaActual}</div>
+          <div class="info-item"><strong>Vendedor:</strong> ${sessionStorage.getItem("usuarioActual") || "Sistema"}</div>
+        </div>
+        
+        <div class="info-section">
+          <h3>👤 Datos del Cliente</h3>
+          <div class="info-item"><strong>Nombre:</strong> ${datosVenta.clienteNombre}</div>
+          ${datosVenta.clienteCedula ? `<div class="info-item"><strong>Cédula:</strong> ${datosVenta.clienteCedula}</div>` : ""}
+        </div>
+      </div>
+
+      <div class="metodo-pago">
+        <h3>💳 Método de Pago</h3>
+        <div class="info-item"><strong>Método:</strong> ${obtenerNombreMetodoPago(datosVenta.metodoPago)}</div>
+        <div class="info-item"><strong>Tasa del día:</strong> ${datosVenta.tasa.toFixed(2)} Bs/USD</div>
+        ${
+          datosVenta.referenciaPago
+            ? `
+          <div class="referencia">
+            <strong>📱 Referencia:</strong> ${datosVenta.referenciaPago}
+          </div>
+        `
+            : ""
+        }
+      </div>
+
+      <table class="productos-table">
+        <thead>
+          <tr>
+            <th>Producto</th>
+            <th>Cantidad</th>
+            <th>Precio Unit.</th>
+            <th>Subtotal</th>
+          </tr>
+        </thead>
+        <tbody>
+  `
+
+  // Agregar productos a la tabla
+  datosVenta.productos.forEach((producto) => {
+    const subtotal = producto.cantidad * producto.precio_venta
+    contenidoFactura += `
+      <tr>
+        <td>${producto.nombre}</td>
+        <td>${producto.cantidad}</td>
+        <td>$${producto.precio_venta.toFixed(2)}</td>
+        <td>$${subtotal.toFixed(2)}</td>
+      </tr>
+    `
+  })
+
+  contenidoFactura += `
+        </tbody>
+      </table>
+
+      <div class="totales">
+        <div class="total-line"><strong>Total USD:</strong> $${datosVenta.totalUSD.toFixed(2)}</div>
+        <div class="total-line"><strong>Total Bs:</strong> ${datosVenta.totalBs.toFixed(2)} Bs</div>
+        <div class="total-final">TOTAL: $${datosVenta.totalUSD.toFixed(2)} USD</div>
+      </div>
+
+      <div class="footer">
+        <p>Gracias por su compra en SIMETRIC GYM</p>
+        <p>Factura generada el ${new Date().toLocaleDateString("es-ES")} a las ${horaActual}</p>
+      </div>
+    </body>
+    </html>
+  `
+
+  // Abrir ventana para imprimir/guardar
+  const ventanaFactura = window.open("", "", "width=800,height=600")
+  ventanaFactura.document.write(contenidoFactura)
+  ventanaFactura.document.close()
+
+  // Dar tiempo para que se cargue el contenido y luego mostrar diálogo de impresión
+  setTimeout(() => {
+    ventanaFactura.print()
+  }, 500)
+}
+
+// Obtener nombre legible del método de pago
+function obtenerNombreMetodoPago(metodo) {
+  const metodos = {
+    efectivo: "Efectivo",
+    tarjeta: "Tarjeta de Débito/Crédito",
+    pago_movil: "Pago Móvil",
+    transferencia: "Transferencia Bancaria",
+  }
+  return metodos[metodo] || metodo
+}
+
 // Event Listeners
 document.addEventListener("DOMContentLoaded", () => {
   console.log("🛒 Módulo de ventas cargado")
@@ -518,7 +938,7 @@ document.addEventListener("DOMContentLoaded", () => {
   document.getElementById("tasa-cambio").addEventListener("input", actualizarTotales)
 
   // Botones del carrito
-  document.getElementById("btn-confirmar-venta").addEventListener("click", confirmarVenta)
+  document.getElementById("btn-confirmar-venta").addEventListener("click", abrirModalDatosVenta)
   document.getElementById("btn-limpiar-carrito").addEventListener("click", limpiarCarrito)
 
   // Agregar al carrito (delegado)
@@ -537,12 +957,22 @@ document.addEventListener("DOMContentLoaded", () => {
   document.getElementById("btn-cancelar-cantidad").addEventListener("click", cerrarModalCantidad)
   document.getElementById("btn-confirmar-cantidad").addEventListener("click", confirmarAgregarCarrito)
 
+  // Modal de datos de venta
+  document.getElementById("cerrar-datos-venta-modal").addEventListener("click", () => {
+    document.getElementById("modal-datos-venta").classList.add("hidden")
+  })
+  document.getElementById("btn-cancelar-venta").addEventListener("click", () => {
+    document.getElementById("modal-datos-venta").classList.add("hidden")
+  })
+  document.getElementById("btn-confirmar-venta-final").addEventListener("click", confirmarVentaCompleta)
+  document.getElementById("metodo-pago").addEventListener("change", manejarCambioMetodoPago)
+
   // Historial
   document.getElementById("btn-historial").addEventListener("click", toggleHistorial)
   document.getElementById("btn-exportar-pdf").addEventListener("click", exportarHistorialPDF)
 })
 
-// Funciones del modal
+// Funciones del modal de cantidad
 function abrirModalCantidad(producto) {
   productoSeleccionado = producto
 
@@ -681,8 +1111,16 @@ function cargarHistorialVentas() {
               <span class="venta-id">Venta #${venta.id}</span>
               <span class="venta-fecha">${fechaFormateada}</span>
             </div>
+            <div class="venta-cliente">
+              <strong>👤 Cliente:</strong> ${venta.cliente_nombre}
+              ${venta.cliente_cedula ? ` (${venta.cliente_cedula})` : ""}
+            </div>
             <div class="venta-productos">
-              <strong>Productos:</strong> ${venta.productos_vendidos || "N/A"}
+              <strong>📦 Productos:</strong> ${venta.productos_vendidos || "N/A"}
+            </div>
+            <div class="venta-pago">
+              <strong>💳 Pago:</strong> ${obtenerNombreMetodoPago(venta.metodo_pago)}
+              ${venta.referencia_pago ? ` - Ref: ${venta.referencia_pago}` : ""}
             </div>
             <div class="venta-totales">
               <div>
@@ -745,6 +1183,9 @@ function exportarHistorialPDF() {
             border-radius: 3px;
             margin-top: 8px;
           }
+          .venta-cliente, .venta-productos, .venta-pago {
+            margin-bottom: 5px;
+          }
         </style>
       </head>
       <body>
@@ -757,5 +1198,8 @@ function exportarHistorialPDF() {
   `)
 
   ventana.document.close()
-  ventana.print()
+  // Dar tiempo para que se cargue el contenido y luego mostrar diálogo de impresión
+  setTimeout(() => {
+    ventana.print()
+  }, 500)
 }

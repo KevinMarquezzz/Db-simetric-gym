@@ -2,7 +2,8 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Productos Más Vendidos</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Estadísticas de Ventas - SIMETRIC GYM</title>
     <link rel="stylesheet" href="modulo_estadisticas.css">
 </head>
 <body>
@@ -12,36 +13,53 @@
             <img src="resources/logo2_simetricG.png" height="60px" width="60px" alt="Logo">
         </div>
     </header>
-
+    
     <section id="ventas-historicas">
         <div class="top">
             <a href="menu_inventario.html" class="back_btn">
                 <button><img class="icon" src="resources/arrow_back_left_icon.png" alt="Volver" height="40px" width="40px"></button>
             </a>
-
-            <div class="list-header">
-                <h2>Productos Más Vendidos</h2>
-                <div class="filters">
+        </div>
+        
+        <div class="list-header">
+            <h2>📊 Productos Más Vendidos</h2>
+            <p class="subtitle">Análisis detallado de rendimiento de ventas</p>
+            
+            <div class="filters">
+                <div class="filter-group">
+                    <label for="filtro-mes">📅 Por mes:</label>
                     <input type="month" id="filtro-mes">
-                    <input type="date" id="fecha-inicio">
-                    <input type="date" id="fecha-fin">
-                    <button id="btn-filtrar">Filtrar</button>
-                    <button id="btn-descargar">Descargar CSV</button>
                 </div>
+                <div class="filter-group">
+                    <label for="fecha-inicio">📅 Desde:</label>
+                    <input type="date" id="fecha-inicio">
+                </div>
+                <div class="filter-group">
+                    <label for="fecha-fin">📅 Hasta:</label>
+                    <input type="date" id="fecha-fin">
+                </div>
+                <button id="btn-filtrar">🔍 Filtrar</button>
+                <button id="btn-exportar-pdf">📄 Exportar PDF</button>
             </div>
-
-            <div class="list-body" id="ventas-container">
-                <!-- Aquí se inyectan dinámicamente las filas -->
+        </div>
+        
+        <!-- Aquí se insertará el resumen dinámicamente -->
+        
+        <div class="list-body" id="ventas-container">
+            <div class="loading">
+                <p>📊 Cargando estadísticas...</p>
             </div>
         </div>
     </section>
 
-    <!-- POPUP DETALLES -->
+    <!-- POPUP DETALLES MEJORADO -->
     <div id="popup-detalles-ventas" class="popup oculto">
-        <div class="popup-contenido">
+        <div class="popup-contenido popup-analisis">
             <span class="cerrar-popup" id="cerrar-popup-ventas">&times;</span>
-            <h3>Detalles del Producto</h3>
-            <div id="contenido-detalles-ventas"></div>
+            <h3>📊 Análisis Detallado del Producto</h3>
+            <div id="contenido-detalles-ventas">
+                <!-- Contenido dinámico del análisis -->
+            </div>
         </div>
     </div>
 

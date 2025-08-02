@@ -1,0 +1,89 @@
+<!-- Popup para nueva compra (sin campo de número de factura) -->
+<div id="popup-actualizar-stock" class="popup oculto">
+    <div class="popup-contenido popup-stock">
+      <span id="cerrar-popup-stock" class="cerrar-popup">&times;</span>
+      <h3>🛒 Nueva Compra de Stock</h3>
+      
+      <div class="producto-info">
+        <div class="info-item">
+          <span class="info-label">Producto:</span>
+          <span id="stock-producto-nombre" class="info-value">-</span>
+        </div>
+        <div class="info-item">
+          <span class="info-label">Código:</span>
+          <span id="stock-producto-codigo" class="info-value">-</span>
+        </div>
+        <div class="info-item">
+          <span class="info-label">Stock actual:</span>
+          <span id="stock-actual" class="info-value stock-highlight">0</span>
+        </div>
+      </div>
+  
+      <form id="form-actualizar-stock">
+        <div class="compra-section">
+          <h4>📦 Información de la Compra</h4>
+          
+          <div class="form-row">
+            <div class="form-group">
+              <label for="cantidad-compra">Cantidad a comprar *</label>
+              <input type="number" id="cantidad-compra" min="1" required>
+            </div>
+            <div class="form-group">
+              <label for="precio-compra-unitario">Precio unitario de compra *</label>
+              <input type="number" id="precio-compra-unitario" step="0.01" min="0" required>
+            </div>
+          </div>
+  
+          <div class="form-row">
+            <div class="form-group">
+              <label for="proveedor-compra">Proveedor *</label>
+              <input type="text" id="proveedor-compra" required>
+            </div>
+            <div class="form-group">
+              <label for="fecha-compra">Fecha de compra *</label>
+              <input type="date" id="fecha-compra" required>
+            </div>
+          </div>
+  
+          <div class="form-group">
+            <label for="observaciones-compra">Observaciones</label>
+            <textarea id="observaciones-compra" rows="3" placeholder="Observaciones adicionales sobre esta compra..."></textarea>
+          </div>
+        </div>
+  
+        <div class="stock-preview">
+          <h4>📊 Preview del Stock</h4>
+          <div class="preview-item">
+            <span class="preview-label">Stock actual:</span>
+            <span id="preview-actual" class="preview-value">0</span>
+          </div>
+          <div class="preview-item">
+            <span class="preview-label">Cantidad a agregar:</span>
+            <span id="preview-cantidad" class="preview-value">0</span>
+          </div>
+          <div class="preview-item">
+            <span class="preview-label">Stock nuevo:</span>
+            <span id="preview-nuevo" class="preview-value preview-highlight">0</span>
+          </div>
+          <div class="preview-item">
+            <span class="preview-label">Total de compra:</span>
+            <span id="preview-total" class="preview-value preview-money">$0.00</span>
+          </div>
+          <div class="preview-item">
+            <span class="preview-label">Precio de venta proyectado:</span>
+            <span id="preview-precio-proyectado" class="preview-value preview-money">N/A</span>
+          </div>
+        </div>
+  
+        <div class="form-buttons">
+          <button type="submit" id="btn-confirmar-compra">
+            <span class="btn-icon">✅</span>Confirmar Compra
+          </button>
+          <button type="button" id="btn-cancelar-stock">
+            <span class="btn-icon">❌</span>Cancelar
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+  

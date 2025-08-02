@@ -192,7 +192,7 @@ header .img {
   cursor: not-allowed;
 }
 
-/* MODAL */
+/* MODAL BASE */
 .modal {
   position: fixed;
   top: 0;
@@ -219,6 +219,13 @@ header .img {
   max-width: 500px;
   position: relative;
   box-shadow: 0 0 20px #880808;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.modal-venta {
+  max-width: 600px;
+  min-width: 500px;
 }
 
 .cerrar-modal {
@@ -242,6 +249,7 @@ header .img {
   padding-bottom: 0.5rem;
 }
 
+/* MODAL DE CANTIDAD */
 .producto-modal-info {
   background-color: #121212;
   padding: 1rem;
@@ -274,10 +282,108 @@ header .img {
   font-size: 1rem;
 }
 
+/* MODAL DE DATOS DE VENTA */
+.resumen-venta {
+  background-color: #121212;
+  padding: 1rem;
+  border-radius: 8px;
+  margin-bottom: 1.5rem;
+  border: 1px solid #880808;
+}
+
+.resumen-venta h4 {
+  color: #4caf50;
+  margin-bottom: 1rem;
+  text-align: center;
+}
+
+.resumen-item {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 0.5rem;
+  font-size: 1.1rem;
+}
+
+.resumen-item:last-child {
+  margin-bottom: 0;
+  font-weight: bold;
+  border-top: 1px solid #333;
+  padding-top: 0.5rem;
+}
+
+.form-section {
+  margin-bottom: 1.5rem;
+}
+
+.form-section h4 {
+  color: #880808;
+  margin-bottom: 1rem;
+  border-bottom: 1px solid #333;
+  padding-bottom: 0.5rem;
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 1rem;
+}
+
+.form-group label {
+  font-weight: bold;
+  margin-bottom: 0.5rem;
+  color: #f2f3d9;
+}
+
+.form-group input,
+.form-group select {
+  padding: 0.5rem;
+  border-radius: 5px;
+  border: 1px solid #880808;
+  background-color: #121212;
+  color: #f2f3d9;
+  font-size: 1rem;
+}
+
+.form-group input:invalid {
+  border-color: #ff6b6b;
+  box-shadow: 0 0 5px rgba(255, 107, 107, 0.3);
+}
+
+.form-group input:valid {
+  border-color: #4caf50;
+}
+
+.form-group small {
+  color: #cccccc;
+  font-size: 0.8rem;
+  margin-top: 0.3rem;
+  display: block;
+}
+
+/* Indicador de campo requerido */
+.form-group label::after {
+  content: "";
+}
+
+.form-group label[for="cliente-nombre"]::after,
+.form-group label[for="cliente-cedula"]::after,
+.form-group label[for="metodo-pago"]::after {
+  content: " *";
+  color: #ff6b6b;
+  font-weight: bold;
+}
+
 .modal-actions {
   display: flex;
   gap: 1rem;
   justify-content: center;
+  margin-top: 1.5rem;
 }
 
 .modal-actions button {
@@ -292,22 +398,26 @@ header .img {
   gap: 0.3rem;
 }
 
-#btn-confirmar-cantidad {
+#btn-confirmar-cantidad,
+#btn-confirmar-venta-final {
   background-color: #4caf50;
   color: white;
 }
 
-#btn-confirmar-cantidad:hover {
+#btn-confirmar-cantidad:hover,
+#btn-confirmar-venta-final:hover {
   background-color: #45a049;
   transform: scale(1.05);
 }
 
-#btn-cancelar-cantidad {
+#btn-cancelar-cantidad,
+#btn-cancelar-venta {
   background-color: #666;
   color: white;
 }
 
-#btn-cancelar-cantidad:hover {
+#btn-cancelar-cantidad:hover,
+#btn-cancelar-venta:hover {
   background-color: #777;
   transform: scale(1.05);
 }
@@ -583,7 +693,9 @@ header .img {
   font-size: 0.9rem;
 }
 
-.venta-productos {
+.venta-cliente,
+.venta-productos,
+.venta-pago {
   margin-bottom: 0.8rem;
 }
 
@@ -654,8 +766,16 @@ header .img {
     margin: 0 1rem;
   }
 
+  .modal-venta {
+    min-width: auto;
+  }
+
   .modal-actions {
     flex-direction: column;
+  }
+
+  .form-row {
+    grid-template-columns: 1fr;
   }
 
   #tasa-container {

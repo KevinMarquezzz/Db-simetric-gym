@@ -133,3 +133,4 @@ btnVerificar.addEventListener("click", () => {
 btnCancelar.addEventListener("click", () => {
   popup.classList.add("hidden")
 })
+console.log('Script de login cargado correctamente');
