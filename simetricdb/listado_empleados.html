@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Listado de Empleados - SIMETRIC GYM</title>
+    <link rel="stylesheet" href="listado_empleados.css">
+</head>
+<body>
+    <header>
+        <h1 id="mainttl">SIMETRIC GYM</h1>
+        <div class="img">             
+            <img src="resources/logo2_simetricG.png" height="60px" width="60px" alt="">
+        </div>
+    </header>
+    <a href="menu_personal.html" class="back_btn">
+        <button><img class="icon" src="resources/arrow_back_left_icon.png" alt="" height="40px" width="40px"></button>
+    </a>
+   
+
+    <section id="listado-empleados">
+        <div class="container">
+            <div class="header-section">
+                <h2>📋 Listado de Empleados</h2>
+                
+                <div class="filters-container">
+                    <div class="filter-row">
+                        <div class="filter-group">
+                            <label for="search-name">🔍 Buscar por nombre:</label>
+                            <input type="text" id="search-name" placeholder="Nombre o apellido">
+                        </div>
+                        
+                        <div class="filter-group">
+                            <label for="search-cedula">🆔 Buscar por cédula:</label>
+                            <input type="text" id="search-cedula" placeholder="Cédula">
+                        </div>
+                    </div>
+                    
+                    <div class="filter-row">
+                        <div class="filter-group">
+                            <label for="filter-cargo">💼 Cargo:</label>
+                            <select id="filter-cargo">
+                                <option value="todos">Todos los cargos</option>
+                                <option value="administrador">Administrador</option>
+                                <option value="recepcionista">Recepcionista</option>
+                                <option value="entrenador">Entrenador Personal</option>
+                                <option value="limpieza">Personal de Limpieza</option>
+                                <option value="mantenimiento">Mantenimiento</option>
+                                <option value="seguridad">Seguridad</option>
+                                <option value="otro">Otro</option>
+                            </select>
+                        </div>
+                        
+                        <div class="filter-group">
+                            <label for="filter-estatus">📊 Estatus:</label>
+                            <select id="filter-estatus">
+                                <option value="todos">Todos</option>
+                                <option value="activo">Activos</option>
+                                <option value="inactivo">Inactivos</option>
+                            </select>
+                        </div>
+                        
+                        <div class="filter-group">
+                            <label for="filter-jornada">⏰ Jornada:</label>
+                            <select id="filter-jornada">
+                                <option value="todos">Todas las jornadas</option>
+                                <option value="tiempo_completo">Tiempo Completo</option>
+                                <option value="medio_tiempo">Medio Tiempo</option>
+                                
+                                <option value="por_horas">Por Horas</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="empleados-container" id="empleados-container">
+                <!-- Los empleados se cargarán aquí dinámicamente -->
+            </div>
+        </div>
+    </section>
+
+    <!-- Popup para ver detalles del empleado -->
+    <div id="popup-detalles" class="popup oculto">
+        <div class="popup-contenido">
+            <span class="cerrar-popup" id="cerrar-popup">&times;</span>
+            <h3>👤 Detalles del Empleado</h3>
+            
+            <form id="form-editar-empleado">
+                <div class="popup-section">
+                    <h4>📋 Datos Personales</h4>
+                    <div class="popup-row">
+                        <div class="popup-field">
+                            <label>Nombre:</label>
+                            <input type="text" id="detalle-nombre" readonly>
+                        </div>
+                        <div class="popup-field">
+                            <label>Apellido:</label>
+                            <input type="text" id="detalle-apellido" readonly>
+                        </div>
+                    </div>
+                    
+                    <div class="popup-row">
+                        <div class="popup-field">
+                            <label>Cédula:</label>
+                            <input type="text" id="detalle-cedula" readonly>
+                        </div>
+                        <div class="popup-field">
+                            <label>Teléfono:</label>
+                            <input type="text" id="detalle-telefono" readonly>
+                        </div>
+                    </div>
+                    
+                    <div class="popup-row">
+                        <div class="popup-field full-width">
+                            <label>Dirección:</label>
+                            <textarea id="detalle-direccion" readonly rows="2"></textarea>
+                        </div>
+                    </div>
+                    
+                    <div class="popup-row">
+                        <div class="popup-field">
+                            <label>Email:</label>
+                            <input type="email" id="detalle-email" readonly>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="popup-section">
+                    <h4>💼 Información Laboral</h4>
+                    <div class="popup-row">
+                        <div class="popup-field">
+                            <label>Cargo:</label>
+                            <select id="detalle-cargo" disabled>
+                                <option value="administrador">Administrador</option>
+                                <option value="recepcionista">Recepcionista</option>
+                                <option value="entrenador">Entrenador Personal</option>
+                                <option value="limpieza">Personal de Limpieza</option>
+                                <option value="mantenimiento">Mantenimiento</option>
+                                <option value="seguridad">Seguridad</option>
+                                <option value="otro">Otro</option>
+                            </select>
+                        </div>
+                        <div class="popup-field">
+                            <label>Tipo de Jornada:</label>
+                            <select id="detalle-jornada" disabled>
+                                <option value="tiempo_completo">Tiempo Completo</option>
+                                <option value="medio_tiempo">Medio Tiempo</option>
+                                
+                                <option value="por_horas">Por Horas</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="popup-row">
+                        <div class="popup-field">
+                            <label>Sueldo Base (USD):</label>
+                            <input type="number" id="detalle-sueldo" step="0.01" readonly>
+                        </div>
+                        <div class="popup-field">
+                            <label>Fecha de Ingreso:</label>
+                            <input type="date" id="detalle-fecha-ingreso" readonly>
+                        </div>
+                    </div>
+                    
+                    <div class="popup-row">
+                        <div class="popup-field">
+                            <label>Estatus:</label>
+                            <span id="detalle-estatus" class="estatus-badge"></span>
+                        </div>
+                        <div class="popup-field">
+                            <label>Antigüedad:</label>
+                            <span id="detalle-antiguedad"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="popup-section">
+                    <h4>🏦 Información Bancaria</h4>
+                    <div class="popup-row">
+                        <div class="popup-field">
+                            <label>Banco:</label>
+                            <select id="detalle-banco" disabled>
+                                <option value="">Seleccionar banco</option>
+                                <option value="banesco">Banesco</option>
+                                <option value="venezuela">Banco de Venezuela</option>
+                                <option value="mercantil">Mercantil</option>
+                                <option value="provincial">Provincial</option>
+                                <option value="bicentenario">Bicentenario</option>
+                                <option value="exterior">Exterior</option>
+                                <option value="otro">Otro</option>
+                            </select>
+                        </div>
+                        <div class="popup-field">
+                            <label>Número de Cuenta:</label>
+                            <input type="text" id="detalle-cuenta" readonly>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="popup-actions">
+                    <div class="action-buttons">
+                        <button type="button" id="boton-editar-guardar" class="btn-edit">✏️ Editar</button>
+                        <button type="button" id="cambiar-estatus" class="btn-status">🔄 Cambiar Estatus</button>
+                        <button type="button" id="eliminar-empleado" class="btn-delete hidden">🗑️ Eliminar Empleado</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Popup para ver nómina del empleado -->
+    <div id="popup-nomina" class="popup oculto">
+        <div class="popup-contenido">
+            <span class="cerrar-popup" id="cerrar-popup-nomina">&times;</span>
+            <h3>💰 Historial de Nómina</h3>
+            <div class="empleado-nomina-info">
+                <h4 id="nombre-empleado-nomina"></h4>
+                <p id="cargo-empleado-nomina"></p>
+            </div>
+            
+            <div id="historial-nomina-container" class="historial-container">
+                <!-- El historial se cargará aquí -->
+            </div>
+            
+            <div class="popup-actions">
+                <button type="button" id="generar-reporte-nomina" class="btn-report">📄 Generar Reporte de Nómina</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Popup para cambiar estatus -->
+    <div id="popup-estatus" class="popup oculto">
+        <div class="popup-contenido-small">
+            <span class="cerrar-popup" id="cerrar-popup-estatus">&times;</span>
+            <h3 id="titulo-cambio-estatus">🔄 Cambiar Estatus del Empleado</h3>
+            
+            <form id="form-cambio-estatus">
+                <div class="popup-field">
+                    <label for="nuevo-estatus">Nuevo Estatus:</label>
+                    <select id="nuevo-estatus" required>
+                        <option value="">Seleccionar estatus</option>
+                        <option value="activo">Activo</option>
+                        <option value="inactivo">Inactivo</option>
+                    </select>
+                </div>
+                
+                <div class="popup-field" id="campo-fecha-egreso" style="display: none;">
+                    <label for="fecha-egreso">Fecha de Egreso:</label>
+                    <input type="date" id="fecha-egreso">
+                </div>
+                
+                <div class="popup-field" id="campo-motivo-egreso" style="display: none;">
+                    <label for="motivo-egreso">Motivo del Egreso:</label>
+                    <select id="motivo-egreso">
+                        <option value="">Seleccionar motivo</option>
+                        <option value="renuncia">Renuncia Voluntaria</option>
+                        <option value="despido">Despido</option>
+                        <option value="vencimiento_contrato">Vencimiento de Contrato</option>
+                        <option value="jubilacion">Jubilación</option>
+                        <option value="otro">Otro</option>
+                    </select>
+                </div>
+                
+                <div class="popup-buttons">
+                    <button type="submit" class="btn-save">💾 Guardar Cambio</button>
+                    <button type="button" id="cancelar-estatus" class="btn-cancel">❌ Cancelar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Popup de confirmación para eliminar -->
+    <div id="popup-confirmar-eliminar" class="popup oculto">
+        <div class="popup-contenido-small">
+            <span class="cerrar-popup" id="cerrar-popup-confirmar">&times;</span>
+            <h3>⚠️ Confirmar Eliminación</h3>
+            
+            <div class="warning-message">
+                <p>¿Está seguro de que desea eliminar permanentemente este empleado de la base de datos?</p>
+                <p><strong id="empleado-a-eliminar"></strong></p>
+                <p class="warning-text">⚠️ Esta acción no se puede deshacer</p>
+            </div>
+            
+            <div class="popup-buttons">
+                <button type="button" id="confirmar-eliminar" class="btn-delete-confirm">🗑️ Sí, Eliminar</button>
+                <button type="button" id="cancelar-eliminar" class="btn-cancel">❌ Cancelar</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="listado_empleados.js"></script>
+</body>
+</html>

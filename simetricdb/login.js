@@ -9,9 +9,78 @@ const db = new sqlite3.Database("simetricdb.sqlite", (err) => {
   }
 })
 
-const path = require("path")
-// const dbPath = path.resolve(__dirname, "database.db")
-// const db = new sqlite3.Database(dbPath)
+
+// Crear tabla de membresías si no existe
+db.run(`CREATE TABLE IF NOT EXISTS membresias (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  nombre TEXT UNIQUE NOT NULL,
+  precio_usd REAL NOT NULL,
+  duracion_dias INTEGER NOT NULL,
+  descripcion TEXT)`)
+
+// Crear tabla de configuraciones si no existe
+db.run(`CREATE TABLE IF NOT EXISTS configuraciones (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  clave TEXT UNIQUE NOT NULL,
+  valor TEXT NOT NULL,
+  
+  fecha_actualizacion TEXT NOT NULL
+)`)
+
+
+// Crear tabla de clientes actualizada con apellido y referencia a membresía
+db.run(`CREATE TABLE IF NOT EXISTS clientes (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  nombre TEXT NOT NULL,
+  apellido TEXT NOT NULL,
+  cedula TEXT UNIQUE NOT NULL,
+  telefono TEXT UNIQUE NOT NULL,
+  direccion TEXT NOT NULL,
+  mail TEXT NOT NULL,
+  membresia_id INTEGER NOT NULL,
+  fecha_registro TEXT NOT NULL,
+  fecha_vencimiento TEXT NOT NULL,
+  monto_dolares REAL NOT NULL,
+  tasa_dia REAL NOT NULL,
+  monto_bs REAL NOT NULL,
+  metodo_pago TEXT NOT NULL,
+  referencia TEXT,
+  FOREIGN KEY (membresia_id) REFERENCES membresias(id))`)
+
+// Crear tabla de pagos (historial) si no existe
+db.run(`CREATE TABLE IF NOT EXISTS pagos (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  cliente_id INTEGER NOT NULL,
+  fecha_pago TEXT NOT NULL,
+  monto_dolares REAL NOT NULL,
+  tasa_dia REAL NOT NULL,
+  monto_bs REAL NOT NULL,
+  metodo_pago TEXT NOT NULL,
+  membresia_id INTEGER NOT NULL,
+  referencia TEXT,
+  FOREIGN KEY (cliente_id) REFERENCES clientes(id),
+  FOREIGN KEY (membresia_id) REFERENCES membresias(id))`)
+
+// Crear tabla de productos (inventario) si no existe
+db.run(`CREATE TABLE IF NOT EXISTS productos (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  nombre TEXT NOT NULL,
+  codigo TEXT UNIQUE NOT NULL,
+  categoria TEXT NOT NULL,
+  marca TEXT NOT NULL,
+  precio_compra REAL NOT NULL,
+  precio_venta REAL NOT NULL,
+  stock INTEGER NOT NULL,
+  unidad TEXT NOT NULL,
+  proveedor TEXT NOT NULL,
+  descripcion TEXT NOT NULL,
+  fecha_registro TEXT NOT NULL)`)
+
+// Crear tabla de usuarios (administradoras) si no existe
+db.run(`CREATE TABLE IF NOT EXISTS usuarios (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  usuario TEXT UNIQUE NOT NULL,
+  clave TEXT NOT NULL)`)  
 
 // Referencias al formulario
 const form = document.getElementById("login-form")

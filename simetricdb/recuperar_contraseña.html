@@ -11,7 +11,7 @@
             <a href="login.html" class="back_btn">
               <button><img class="icon" src="resources/arrow_back_left_icon.png" alt="" height="40px" width="40px"></button>
             </a>
-            </div>  
+        </div>  
         <header>
             <div class="logo_img">
                 <img src="resources/logo2_simetricG.png" alt="logo" height="100px" width="100px">
@@ -21,9 +21,10 @@
             </div>
         </header>
 
-        
         <section class="login-section">
+            <!-- Formulario de Verificación -->
             <form id="verificacion-form">
+                
                 <div class="input-group">
                     <label for="usuario">Usuario</label>
                     <input type="text" id="usuario" name="usuario" required>
@@ -39,25 +40,61 @@
                 </div>
             </form>
 
-            <form id="cambio-form" class="popup hidden">
+            <!-- Formulario de Cambio de Contraseña Mejorado -->
+            <div id="cambio-form" class="popup hidden">
                 <div class="popup-container">
-                    <h4 class="popup-title">Cambiar contraseña</h4>
-                <div class="input-group">
-                    <label for="nueva-clave">Nueva contraseña</label>
-                    <input type="password" id="nueva-clave" required>
-                </div>
+                    <div class="popup-header">
+                        <h3 class="popup-title">🔐 Cambiar Contraseña</h3>
+                        <p class="popup-subtitle">Establece una nueva contraseña segura para <span id="usuario-cambio"></span></p>
+                    </div>
 
-                <div class="input-group">
-                    <label for="confirmar-clave">Confirmar contraseña</label>
-                    <input type="password" id="confirmar-clave" required>
-                </div>
+                    <form id="form-nueva-clave">
+                        <div class="input-group">
+                            <label for="nueva-clave">Nueva contraseña</label>
+                            <input type="password" id="nueva-clave" required>
+                            
+                            <!-- Panel de requisitos de contraseña -->
+                            <div id="password-requirements" class="requirements-panel">
+                                <h4>Requisitos de contraseña:</h4>
+                                <div class="requirement" id="req-length">
+                                    <span class="req-icon">❌</span>
+                                    <span class="req-text">Al menos 8 caracteres</span>
+                                </div>
+                                <div class="requirement" id="req-uppercase">
+                                    <span class="req-icon">❌</span>
+                                    <span class="req-text">Al menos una mayúscula (A-Z)</span>
+                                </div>
+                                <div class="requirement" id="req-number">
+                                    <span class="req-icon">❌</span>
+                                    <span class="req-text">Al menos un número (0-9)</span>
+                                </div>
+                                <div class="requirement" id="req-special">
+                                    <span class="req-icon">❌</span>
+                                    <span class="req-text">Al menos un carácter especial (!@#$%^&*)</span>
+                                </div>
+                            </div>
+                        </div>
 
-                <div class="btn-login">
-                    <button type="submit">Actualizar</button>
-                    <button id="btn-cancelar-popup" class="btn">Cancelar</button>
+                        <div class="input-group">
+                            <label for="confirmar-clave">Confirmar nueva contraseña</label>
+                            <input type="password" id="confirmar-clave" required>
+                            
+                            <!-- Panel de coincidencia de contraseñas -->
+                            <div id="password-match" class="requirements-panel">
+                                <div class="requirement" id="req-match">
+                                    <span class="req-icon">❌</span>
+                                    <span class="req-text">Las contraseñas coinciden</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="btn-login">
+                            <button type="submit" id="submit-btn" disabled>Actualizar Contraseña</button>
+                            <button type="button" id="btn-cancelar-popup" class="btn">Cancelar</button>
+                        </div>
+                    </form>
                 </div>
             </div>
-            </form>
         </section>
     </main>
 

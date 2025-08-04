@@ -224,6 +224,10 @@ form.addEventListener("submit", (e) => {
     passwordMatch.classList.remove("show")
 
     updateSubmitButton()
+    // NUEVA FUNCIONALIDAD: Redirección automática a login.html
+    setTimeout(() => {
+      window.location.href = "login.html"
+    })
   })
 })
 

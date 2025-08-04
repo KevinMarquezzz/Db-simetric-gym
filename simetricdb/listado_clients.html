@@ -14,12 +14,12 @@
       <img src="resources/logo2_simetricG.png" height="60px" width="60px" alt="">
     </div>
   </header>
-    
+  <a href="menu_client.html" class="back_btn"> 
+    <button><img class="icon" src="resources/arrow_back_left_icon.png" alt="" height="40px" width="40px"></button>
+  </a>
   <section id="client-list">
     <div class="top"> 
-      <a href="menu_client.html" class="back_btn"> 
-        <button><img class="icon" src="resources/arrow_back_left_icon.png" alt="" height="40px" width="40px"></button>
-      </a>
+     
       
       <div class="list-header">
         <h2>Listado de Clientes</h2>
@@ -34,13 +34,7 @@
           </select>
           <select id="filter-membresia">
             <option value="todos">Todas las membresías</option>
-            <option value="mensual">Plan Mensual</option>
-            <option value="diario">Plan Diario</option>
-            <option value="semanal">Plan Semanal</option>
-            <option value="especial">Plan Especial</option>
-            <option value="parejas">Plan Parejas</option>
-            <option value="familiar">Plan Familiar</option>
-            <option value="estudiantil">Plan Estudiantil</option>
+            <!-- Las opciones se cargarán dinámicamente desde la base de datos -->
           </select>
         </div>
       </div>
@@ -57,20 +51,14 @@
       <form id="form-actualizar-membresia">
         <label>Nuevo tipo de membresía:</label>
         <select id="nueva_membresia">
-          <option value="mensual">Plan mensual</option>
-          <option value="diario">Diario</option>
-          <option value="semanal">Semanal</option>
-          <option value="especial">Especial</option>
-          <option value="parejas">Parejas</option>
-          <option value="familiar">Familiar</option>
-          <option value="estudiantil">Estudiantil</option>
+          <!-- Las opciones se cargarán dinámicamente desde la base de datos -->
         </select>
         
         <label>Monto ($):</label>
         <input type="number" id="monto_dolares" name="monto_dolares" step="0.01" required>
             
         <label>Tasa del día:</label>
-        <input type="number" id="tasa_dia" name="tasa_dia" step="0.01" required>
+        <input type="number" id="tasa_dia" name="tasa_dia" step="0.01" required disabled>
             
         <label>Monto en bolívares:</label>
         <input type="text" id="monto_bs" name="monto_bs" readonly>

@@ -8,8 +8,28 @@ const db = new sqlite3.Database("simetricdb.sqlite", (err) => {
     console.log("✅ Conectado a la base de datos unificada para ventas.")
     crearTablaVentas()
     cargarProductosVenta()
+    cargarTasaAutomatica() // Cargar tasa automáticamente
   }
 })
+
+// Función para cargar tasa automáticamente al iniciar
+function cargarTasaAutomatica() {
+  db.get("SELECT valor FROM configuraciones WHERE clave = 'tasa_dia'", [], (err, row) => {
+    if (err) {
+      console.error("Error cargando tasa:", err.message)
+      return
+    }
+
+    if (row) {
+      const tasaInput = document.getElementById("tasa-cambio")
+      if (tasaInput) {
+        tasaInput.value = row.valor
+        actualizarTotales() // Recalcular totales con la nueva tasa
+        console.log(`✅ Tasa cargada automáticamente: ${row.valor} Bs/USD`)
+      }
+    }
+  })
+}
 
 // Crear tabla de ventas si no existe
 function crearTablaVentas() {
@@ -59,16 +79,16 @@ function crearTablaVentas() {
                 `
               INSERT INTO ventas_new (id, fecha_venta, cliente_nombre, cliente_cedula, total_usd, total_bs, tasa_cambio, metodo_pago, referencia_pago, usuario, observaciones)
               SELECT 
-                id, 
-                fecha_venta, 
+                id,
+                fecha_venta,
                 COALESCE(cliente_nombre, 'Cliente General') as cliente_nombre,
                 COALESCE(cliente_cedula, 'N/A') as cliente_cedula,
-                total_usd, 
-                total_bs, 
+                total_usd,
+                total_bs,
                 tasa_cambio,
                 COALESCE(metodo_pago, 'efectivo') as metodo_pago,
                 referencia_pago,
-                usuario, 
+                usuario,
                 observaciones
               FROM ventas
             `,
@@ -527,6 +547,7 @@ async function confirmarVentaCompleta() {
     carrito.forEach((item) => {
       totalUSD += item.precio_venta * item.cantidad
     })
+
     const tasa = Number.parseFloat(document.getElementById("tasa-cambio").value)
     const totalBs = totalUSD * tasa
 
@@ -555,8 +576,8 @@ async function confirmarVentaCompleta() {
       // 1. Insertar venta principal con datos completos
       db.run(
         `
-        INSERT INTO ventas (fecha_venta, cliente_nombre, cliente_cedula, total_usd, total_bs, 
-                           tasa_cambio, metodo_pago, referencia_pago, usuario)
+        INSERT INTO ventas (fecha_venta, cliente_nombre, cliente_cedula, total_usd, total_bs,
+                            tasa_cambio, metodo_pago, referencia_pago, usuario)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
       `,
         [fechaVenta, clienteNombre, clienteCedula, totalUSD, totalBs, tasa, metodoPago, referenciaPago, usuarioActual],
@@ -668,7 +689,9 @@ async function confirmarVentaCompleta() {
                               carrito = []
                               renderizarCarrito()
                               cargarProductosVenta()
-                              document.getElementById("tasa-cambio").value = ""
+
+                              // Recargar tasa automáticamente para la próxima venta
+                              cargarTasaAutomatica()
                             })
                           }
                         },
@@ -703,17 +726,23 @@ function mostrarOpcionesFactura(ventaId, datosVenta) {
     `¿Desea generar la factura?`
 
   const generarFactura = confirm(mensaje)
-
   if (generarFactura) {
     generarFacturaPDF(ventaId, datosVenta)
   }
 }
 
-// Generar factura en PDF
+// Generar factura en PDF con cálculo de IVA del 16%
 function generarFacturaPDF(ventaId, datosVenta) {
   // Crear contenido HTML para la factura
   const fechaFormateada = new Date(datosVenta.fechaVenta).toLocaleDateString("es-ES")
   const horaActual = new Date().toLocaleTimeString("es-ES")
+
+  // Calcular IVA del 16%
+  const IVA_RATE = 0.16
+  const montoSinIVA = datosVenta.totalUSD / (1 + IVA_RATE)
+  const montoIVA = datosVenta.totalUSD - montoSinIVA
+  const sinIVABs = montoSinIVA * datosVenta.tasa
+  const ivaBs = montoIVA * datosVenta.tasa
 
   let contenidoFactura = `
     <!DOCTYPE html>
@@ -782,6 +811,30 @@ function generarFacturaPDF(ventaId, datosVenta) {
         .productos-table tr:nth-child(even) {
           background-color: #f9f9f9;
         }
+        .desglose-table {
+          width: 100%;
+          border-collapse: collapse;
+          margin-bottom: 30px;
+        }
+        .desglose-table th,
+        .desglose-table td {
+          border: 1px solid #ddd;
+          padding: 12px;
+          text-align: left;
+        }
+        .desglose-table th {
+          background-color: #880808;
+          color: white;
+          font-weight: bold;
+        }
+        .desglose-table tr:nth-child(even) {
+          background-color: #f9f9f9;
+        }
+        .total-row {
+          background-color: #e8f5e8 !important;
+          font-weight: bold;
+          font-size: 16px;
+        }
         .totales {
           text-align: right;
           margin-bottom: 30px;
@@ -816,6 +869,17 @@ function generarFacturaPDF(ventaId, datosVenta) {
           border-left: 4px solid #4caf50;
           margin-top: 10px;
         }
+        .iva-section {
+          background-color: #fff3cd;
+          border: 1px solid #ffeaa7;
+          padding: 15px;
+          border-radius: 8px;
+          margin-bottom: 20px;
+        }
+        .iva-section h4 {
+          color: #856404;
+          margin-bottom: 10px;
+        }
       </style>
     </head>
     <body>
@@ -827,7 +891,7 @@ function generarFacturaPDF(ventaId, datosVenta) {
       <div class="factura-info">
         <div class="info-section">
           <h3>📄 Información de la Factura</h3>
-          <div class="info-item"><strong>Factura #:</strong> ${ventaId}</div>
+          <div class="info-item"><strong>Factura #:</strong> VENTA-${ventaId}</div>
           <div class="info-item"><strong>Fecha:</strong> ${fechaFormateada}</div>
           <div class="info-item"><strong>Hora:</strong> ${horaActual}</div>
           <div class="info-item"><strong>Vendedor:</strong> ${sessionStorage.getItem("usuarioActual") || "Sistema"}</div>
@@ -884,15 +948,48 @@ function generarFacturaPDF(ventaId, datosVenta) {
         </tbody>
       </table>
 
+      <div class="iva-section">
+        <h4>💰 Desglose de IVA (16%)</h4>
+        <table class="desglose-table">
+          <thead>
+            <tr>
+              <th>Concepto</th>
+              <th>Monto USD</th>
+              <th>Monto Bs</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Subtotal (sin IVA)</td>
+              <td>$${montoSinIVA.toFixed(2)}</td>
+              <td>${sinIVABs.toFixed(2)} Bs</td>
+            </tr>
+            <tr>
+              <td>IVA (16%)</td>
+              <td>$${montoIVA.toFixed(2)}</td>
+              <td>${ivaBs.toFixed(2)} Bs</td>
+            </tr>
+            <tr class="total-row">
+              <td><strong>TOTAL A PAGAR</strong></td>
+              <td><strong>$${datosVenta.totalUSD.toFixed(2)}</strong></td>
+              <td><strong>${datosVenta.totalBs.toFixed(2)} Bs</strong></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
       <div class="totales">
+        <div class="total-line"><strong>Subtotal (sin IVA):</strong> $${montoSinIVA.toFixed(2)} USD</div>
+        <div class="total-line"><strong>IVA (16%):</strong> $${montoIVA.toFixed(2)} USD</div>
         <div class="total-line"><strong>Total USD:</strong> $${datosVenta.totalUSD.toFixed(2)}</div>
         <div class="total-line"><strong>Total Bs:</strong> ${datosVenta.totalBs.toFixed(2)} Bs</div>
-        <div class="total-final">TOTAL: $${datosVenta.totalUSD.toFixed(2)} USD</div>
+        <div class="total-final">TOTAL FINAL: $${datosVenta.totalUSD.toFixed(2)} USD</div>
       </div>
 
       <div class="footer">
-        <p>Gracias por su compra en SIMETRIC GYM</p>
+        <p><strong>¡Gracias por su compra en SIMETRIC GYM!</strong> <br>RIF: J-31700635/3 </p>
         <p>Factura generada el ${new Date().toLocaleDateString("es-ES")} a las ${horaActual}</p>
+        <p>Esta factura incluye IVA del 16% según la legislación vigente</p>
       </div>
     </body>
     </html>
@@ -900,6 +997,13 @@ function generarFacturaPDF(ventaId, datosVenta) {
 
   // Abrir ventana para imprimir/guardar
   const ventanaFactura = window.open("", "", "width=800,height=600")
+  if (!ventanaFactura) {
+    alert(
+      "❌ Error: El navegador bloqueó la ventana emergente. Por favor, permite ventanas emergentes para este sitio.",
+    )
+    return
+  }
+
   ventanaFactura.document.write(contenidoFactura)
   ventanaFactura.document.close()
 
@@ -1198,6 +1302,7 @@ function exportarHistorialPDF() {
   `)
 
   ventana.document.close()
+
   // Dar tiempo para que se cargue el contenido y luego mostrar diálogo de impresión
   setTimeout(() => {
     ventana.print()

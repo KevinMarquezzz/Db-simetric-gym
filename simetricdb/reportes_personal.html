@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reportes de Personal - SIMETRIC GYM</title>
+    <link rel="stylesheet" href="reportes_personal.css">
+</head>
+<body>
+    <header>
+        <h1 id="mainttl">SIMETRIC GYM</h1>
+        <div class="img">             
+            <img src="resources/logo2_simetricG.png" height="60px" width="60px" alt="">
+        </div>
+    </header>
+    
+    <a href="menu_personal.html" class="back_btn">
+        <button><img class="icon" src="resources/arrow_back_left_icon.png" alt="" height="40px" width="40px"></button>
+    </a>
+
+    <section id="reportes-section">
+        <div class="container">
+            <div class="header-section">
+                <h2>📊 Reportes de Personal y Nómina</h2>
+                <p class="subtitle">Genere reportes detallados y análisis del personal</p>
+            </div>
+
+            <!-- Selector de tipo de reporte -->
+            <div class="reporte-selector">
+                <h3>🎯 Seleccionar Tipo de Reporte</h3>
+                <div class="tipos-reporte">
+                    <div class="tipo-card active" data-tipo="empleados">
+                        <div class="tipo-icon">👥</div>
+                        <h4>Empleados</h4>
+                        <p>Listado general de empleados</p>
+                    </div>
+                    
+                    <div class="tipo-card" data-tipo="nomina">
+                        <div class="tipo-icon">💰</div>
+                        <h4>Nómina</h4>
+                        <p>Reportes de nómina por período</p>
+                    </div>
+                    
+                    <div class="tipo-card" data-tipo="prestaciones">
+                        <div class="tipo-icon">🏦</div>
+                        <h4>Prestaciones</h4>
+                        <p>Prestaciones sociales acumuladas</p>
+                    </div>
+                    
+                    <div class="tipo-card" data-tipo="costos">
+                        <div class="tipo-icon">📈</div>
+                        <h4>Costos Laborales</h4>
+                        <p>Análisis de costos por período</p>
+                    </div>
+                    
+                    <div class="tipo-card" data-tipo="antiguedad">
+                        <div class="tipo-icon">⏳</div>
+                        <h4>Antigüedad</h4>
+                        <p>Análisis de antigüedad del personal</p>
+                    </div>
+                    
+                    <div class="tipo-card" data-tipo="comparativo">
+                        <div class="tipo-icon">📊</div>
+                        <h4>Comparativo</h4>
+                        <p>Comparación entre períodos</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Filtros dinámicos -->
+            <div class="filtros-container" id="filtros-container">
+                <!-- Se llenarán dinámicamente según el tipo de reporte -->
+            </div>
+
+            <!-- Vista previa del reporte -->
+            <div class="vista-previa" id="vista-previa" style="display: none;">
+                <div class="previa-header">
+                    <h3>👁️ Vista Previa del Reporte</h3>
+                    <div class="previa-acciones">
+                        <button id="generar-pdf" class="btn-primary">📄 Generar PDF</button>
+                        <button id="actualizar-vista" class="btn-secondary">🔄 Actualizar</button>
+                    </div>
+                </div>
+                
+                <div class="previa-contenido" id="previa-contenido">
+                    <!-- Contenido de la vista previa -->
+                </div>
+            </div>
+
+            <!-- Estadísticas rápidas -->
+            <div class="estadisticas-rapidas" id="estadisticas-rapidas">
+                <h3>📈 Estadísticas Rápidas</h3>
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-numero" id="total-empleados-stat">0</div>
+                        <div class="stat-label">Empleados Activos</div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-numero" id="costo-nomina-stat">$0</div>
+                        <div class="stat-label">Costo Nómina Actual</div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-numero" id="prestaciones-stat">$0</div>
+                        <div class="stat-label">Prestaciones Acumuladas</div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-numero" id="antiguedad-promedio-stat">0</div>
+                        <div class="stat-label">Antigüedad Promedio (años)</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Popup para configuración avanzada -->
+    <div id="popup-config" class="popup oculto">
+        <div class="popup-contenido">
+            <span class="cerrar-popup" id="cerrar-popup-config">&times;</span>
+            <h3>⚙️ Configuración Avanzada del Reporte</h3>
+            
+            <div class="config-section">
+                <h4>📋 Campos a Incluir</h4>
+                <div class="campos-grid" id="campos-incluir">
+                    <!-- Se llenarán dinámicamente -->
+                </div>
+            </div>
+            
+            
+            <div class="config-section">
+                <h4>📄 Opciones de Exportación</h4>
+                <div class="exportacion-opciones">
+                    <label>
+                        <input type="checkbox" id="incluir-graficos" checked>
+                        <span>Incluir gráficos estadísticos</span>
+                    </label>
+                    <label>
+                        <input type="checkbox" id="incluir-firmas" checked>
+                        <span>Incluir espacios para firmas</span>
+                    </label>
+                    <label>
+                        <input type="checkbox" id="incluir-fecha-hora" checked>
+                        <span>Incluir fecha y hora de generación</span>
+                    </label>
+                </div>
+            </div>
+            
+            <div class="popup-buttons">
+                <button id="aplicar-config" class="btn-success">✅ Aplicar Configuración</button>
+                <button id="cancelar-config" class="btn-secondary">❌ Cancelar</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="reportes_personal.js"></script>
+</body>
+</html>

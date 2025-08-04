@@ -59,33 +59,34 @@ main{
        background-size: cover;
        background-position: center;
     }
-    main #sect1 .top{
+    #sect1 .top{
         display: flex;
         align-items: center;
         justify-content: center;
         position: relative;
         padding: 1rem;
     }
-    main #sect1 h2{
+    main h2{
         color: #f2f3d9;
         text-decoration: underline #ff1c1ca2 2px;
     }
-    main #sect1 .back_btn{
+    .back_btn{
     position: absolute;
-    left: 0;
-    
+    top: 2%;
+   left: 3%;    
     }
-    main .back_btn button{
+    .back_btn button{
         background: none;
         border: 2px solid #880808;
         border-radius: 5px;
+        padding: 4px;
         transition: 
             border-width 0.1s ease,
             box-shadow 0.1s ease,
             transform 0.1s ease;
     }
     
-    main .back_btn button:hover {
+    .back_btn button:hover {
         cursor: pointer;
         border-width: 3px;
         box-shadow: 0 0 8px #88080899;

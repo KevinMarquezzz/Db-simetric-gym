@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -10,22 +10,23 @@
 <body>
     <header>
         <h1 id="mainttl">SIMETRIC GYM</h1>
-        <div class="img"> 
+        <div class="img">             
             <img src="resources/logo2_simetricG.png" height="60px" width="60px" alt="">
         </div>
-    </header>
-            
-    <section id="new-client">
-        <div class="top">
-            <a href="menu_client.html" class="back_btn">
-                <button><img class="icon" src="resources/arrow_back_left_icon.png" alt="" height="40px" width="40px"></button>
-            </a>
-        </div>
         
-        <form>
+    </header>
+    <div class="top">
+        <a href="menu_client.html" class="back_btn">
+            <button><img class="icon" src="resources/arrow_back_left_icon.png" alt="" height="40px" width="40px"></button>
+        </a>
+    </div>
+    <section id="new-client">
+       
+                
+        <form id="clienteForm">
             <div class="form-container">
                 <h3>Datos del Cliente</h3>
-                
+                                
                 <div class="form-row">
                     <div class="form-group">
                         <label for="nombre">Nombre:</label>
@@ -36,7 +37,7 @@
                         <input type="text" id="apellido" name="apellido" required>
                     </div>
                 </div>
-                
+                                
                 <div class="form-row">
                     <div class="form-group">
                         <label for="cedula">Cédula:</label>
@@ -47,19 +48,13 @@
                         <input type="text" id="telefono" name="telefono" required>
                     </div>
                 </div>
-                
+                                
                 <div class="form-row">
                     <div class="form-group">
                         <label for="membresia">Tipo de Membresía:</label>
                         <select id="membresia" name="membresia" required>
                             <option value="">Seleccionar</option>
-                            <option value="mensual">Plan Mensual</option>
-                            <option value="diario">Plan Diario</option>
-                            <option value="semanal">Plan Semanal</option>
-                            <option value="especial">Plan Especial</option>
-                            <option value="parejas">Plan Parejas</option>
-                            <option value="familiar">Plan Familiar</option>
-                            <option value="estudiantil">Plan Estudiantil</option>
+                            <!-- Las opciones se cargarán dinámicamente desde la base de datos -->
                         </select>
                     </div>
                     <div class="form-group">
@@ -67,7 +62,7 @@
                         <textarea id="direccion" name="direccion" required></textarea>
                     </div>
                 </div>
-                
+                                
                 <div class="form-row">
                     <div class="form-group">
                         <label for="mail">Correo:</label>
@@ -76,7 +71,7 @@
                 </div>
 
                 <h3>Datos de Pago</h3>
-                
+                                
                 <div class="form-row">
                     <div class="form-group">
                         <label for="monto_dolares">Monto ($):</label>
@@ -84,10 +79,10 @@
                     </div>
                     <div class="form-group">
                         <label for="tasa_dia">Tasa del día:</label>
-                        <input type="number" id="tasa_dia" name="tasa_dia" step="0.01" required>
+                        <input type="number" id="tasa_dia" name="tasa_dia" step="0.01" required disabled>
                     </div>
                 </div>
-                
+                                
                 <div class="form-row">
                     <div class="form-group">
                         <label for="monto_bs">Monto en Bs:</label>
@@ -104,14 +99,19 @@
                         </select>
                     </div>
                 </div>
-                
+
+                <!-- Contenedor específico para el desglose de IVA -->
+                <div id="desglose-container" class="desglose-container" style="display: none;">
+                    <!-- El desglose se insertará aquí dinámicamente -->
+                </div>
+                                
                 <div class="form-row">
                     <div class="form-group">
                         <label for="referencia">Referencia:</label>
                         <input type="text" id="referencia" name="referencia">
                     </div>
                 </div>
-                          
+                                          
                 <div class="form-buttons">
                     <button type="submit" id="save-btn">Guardar Cliente</button>
                     <button type="reset" id="clear-btn">Limpiar</button>
@@ -119,7 +119,7 @@
             </div>
         </form>
     </section>
-    
+        
     <script src="registroClientes.js"></script>
 </body>
 </html>

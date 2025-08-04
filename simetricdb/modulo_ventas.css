@@ -35,10 +35,10 @@ header .img {
   right: 1rem;
 }
 
-.top .back_btn {
+.back_btn {
   position: absolute;
-  left: 3%;
-  margin-top: 2rem;
+  top: 2%;
+   left: 3%;
 }
 
 .back_btn button {
@@ -46,6 +46,7 @@ header .img {
   border: 2px solid #880808;
   border-radius: 5px;
   transition: border-width 0.1s ease, box-shadow 0.1s ease, transform 0.1s ease;
+  padding: 4px;
 }
 
 .back_btn button:hover {
