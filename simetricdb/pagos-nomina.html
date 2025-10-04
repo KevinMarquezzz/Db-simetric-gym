@@ -10,10 +10,11 @@
 <body>
     <header>
         <h1 id="mainttl">SIMETRIC GYM</h1>
-        <div class="img">             
+        <div class="img">                        
             <img src="resources/logo2_simetricG.png" height="60px" width="60px" alt="">
         </div>
     </header>
+
     <a href="menu_personal.html" class="back_btn">
         <button><img class="icon" src="resources/arrow_back_left_icon.png" alt="" height="40px" width="40px"></button>
     </a>
@@ -53,7 +54,6 @@
                         <label for="estatus-pago">📊 Estatus:</label>
                         <select id="estatus-pago">
                             <option value="todos">Todos</option>
-                            <option value="pendiente">Pendientes</option>
                             <option value="procesada">Procesadas</option>
                             <option value="pagada">Pagadas</option>
                         </select>
@@ -146,8 +146,8 @@
                             <span class="detalle-valor" id="pago-sueldo-base">$0.00</span>
                         </div>
                         <div class="detalle-pago">
-                            <span class="detalle-label">Horas Extras:</span>
-                            <span class="detalle-valor" id="pago-horas-extras">$0.00</span>
+                            <span class="detalle-label">Días Feriados:</span>
+                            <span class="detalle-valor" id="pago-dias-feriados">$0.00</span>
                         </div>
                         <div class="detalle-pago">
                             <span class="detalle-label">Bonos:</span>
@@ -180,6 +180,14 @@
                         <div class="detalle-pago final">
                             <span class="detalle-label">SUELDO NETO:</span>
                             <span class="detalle-valor" id="pago-sueldo-neto">$0.00</span>
+                        </div>
+                        <div class="detalle-pago utilidades" id="pago-utilidades-section" style="display: none;">
+                            <span class="detalle-label">🎁 UTILIDADES:</span>
+                            <span class="detalle-valor" id="pago-utilidades">$0.00</span>
+                        </div>
+                        <div class="detalle-pago total-final" id="pago-total-final-section" style="display: none;">
+                            <span class="detalle-label">💰 TOTAL A PAGAR:</span>
+                            <span class="detalle-valor" id="pago-total-final">$0.00</span>
                         </div>
                     </div>
                 </div>
@@ -235,6 +243,8 @@
             
             <div class="pago-masivo-info">
                 <p><strong>Empleados seleccionados:</strong> <span id="empleados-seleccionados-count">0</span></p>
+                <p><strong>Total nómina:</strong> $<span id="total-nomina-masivo">0.00</span></p>
+                <p><strong>Total utilidades:</strong> $<span id="total-utilidades-masivo">0.00</span></p>
                 <p><strong>Total a pagar:</strong> $<span id="total-pago-masivo">0.00</span></p>
             </div>
             

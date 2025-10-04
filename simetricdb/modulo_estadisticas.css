@@ -38,7 +38,7 @@ header .img {
 .back_btn {
   position: absolute;
   top: 2%;
-   left: 3%;
+  left: 3%;
 }
 
 .back_btn button {
@@ -118,10 +118,10 @@ header .img {
 }
 
 #btn-filtrar,
+#btn-limpiar-filtros,
 #btn-exportar-pdf {
   padding: 0.5rem 1rem;
   border: none;
-  background-color: #880808;
   color: #fff;
   border-radius: 5px;
   cursor: pointer;
@@ -132,9 +132,30 @@ header .img {
   gap: 0.5rem;
 }
 
-#btn-filtrar:hover,
-#btn-exportar-pdf:hover {
+#btn-filtrar {
+  background-color: #880808;
+}
+
+#btn-filtrar:hover {
   background-color: #aa1010;
+  transform: scale(1.05);
+}
+
+#btn-limpiar-filtros {
+  background-color: #666;
+}
+
+#btn-limpiar-filtros:hover {
+  background-color: #777;
+  transform: scale(1.05);
+}
+
+#btn-exportar-pdf {
+  background-color: #ff9800;
+}
+
+#btn-exportar-pdf:hover {
+  background-color: #f57c00;
   transform: scale(1.05);
 }
 
@@ -181,6 +202,20 @@ header .img {
   font-size: 0.9rem;
 }
 
+/* Indicador de período sin datos */
+.sin-datos {
+  background-color: #1e1e1e;
+  border: 2px solid #880808;
+  border-radius: 10px;
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+  box-shadow: 0 0 10px #88080899;
+}
+
+.sin-datos .resumen-valor {
+  color: #ff9800;
+}
+
 /* LISTADO MEJORADO */
 .list-body {
   background-color: #121212;
@@ -210,6 +245,16 @@ header .img {
   padding: 3rem;
   color: #888;
   font-size: 1.1rem;
+}
+
+.no-datos-mensaje {
+  text-align: center;
+  padding: 3rem;
+  color: #ff9800;
+  font-size: 1.2rem;
+  background-color: rgba(255, 152, 0, 0.1);
+  border-radius: 8px;
+  border: 1px solid #ff9800;
 }
 
 .table-header,

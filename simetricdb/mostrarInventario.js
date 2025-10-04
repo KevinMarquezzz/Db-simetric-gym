@@ -18,18 +18,20 @@ let productoSeleccionadoStock = null
 
 // Crear tablas para el sistema de lotes
 function crearTablasLotes() {
-  // Tabla de lotes - cada compra es un lote independiente
+  // Tabla de lotes - cada compra es un lote independiente con código único
   db.run(
     `
     CREATE TABLE IF NOT EXISTS lotes (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       producto_id INTEGER NOT NULL,
+      codigo_lote TEXT UNIQUE NOT NULL,
       cantidad_inicial INTEGER NOT NULL,
       cantidad_disponible INTEGER NOT NULL,
       precio_compra_unitario REAL NOT NULL,
       proveedor TEXT NOT NULL,
       numero_factura TEXT,
       fecha_compra TEXT NOT NULL,
+      codigo_lote TEXT UNIQUE,
       fecha_vencimiento TEXT,
       observaciones TEXT,
       usuario_registro TEXT,
@@ -42,10 +44,16 @@ function crearTablasLotes() {
         console.error("Error creando tabla lotes:", err.message)
       } else {
         console.log("✅ Tabla lotes verificada/creada")
+        // Crear índice para búsqueda por código
+        db.run(`CREATE INDEX IF NOT EXISTS idx_lotes_codigo ON lotes(codigo_lote)`)
       }
     },
   )
-
+  db.run(
+    `
+    CREATE INDEX IF NOT EXISTS idx_lotes_codigo ON lotes(codigo_lote);
+    `
+  )
   // Tabla de movimientos de stock (para auditoría)
   db.run(
     `
@@ -74,6 +82,21 @@ function crearTablasLotes() {
       }
     },
   )
+}
+
+// Función para generar código de lote
+function generarCodigoLote(productoId, callback) {
+  // Contar lotes existentes para este producto
+  db.get(`SELECT COUNT(*) as total FROM lotes WHERE producto_id = ? AND activo = 1`, [productoId], (err, result) => {
+    if (err) {
+      callback(err, null)
+      return
+    }
+
+    const numeroLote = result.total + 1
+    const codigoLote = `L${String(productoId).padStart(3, "0")}-${String(numeroLote).padStart(3, "0")}`
+    callback(null, codigoLote)
+  })
 }
 
 function cargarInventarioDesdeDB() {
@@ -276,9 +299,54 @@ document.addEventListener("click", (event) => {
       )
     }
   }
+
+  // Manejar búsqueda por código de lote
+  if (event.target.id === "btn-buscar-lote") {
+    const codigoLote = document.getElementById("buscar-codigo-lote").value.trim()
+    if (codigoLote) {
+      buscarPorCodigoLote(codigoLote)
+    } else {
+      alert("Por favor ingresa un código de lote para buscar")
+    }
+  }
 })
 
-// Función para obtener los lotes del historial actual
+// Función para buscar por código de lote
+function buscarPorCodigoLote(codigoLote) {
+  db.get(
+    `SELECT l.*, p.nombre as producto_nombre, p.codigo as producto_codigo
+     FROM lotes l
+     JOIN productos p ON l.producto_id = p.id
+     WHERE l.codigo_lote = ? AND l.activo = 1`,
+    [codigoLote],
+    (err, lote) => {
+      if (err) {
+        console.error("Error buscando lote:", err.message)
+        alert("Error al buscar el lote")
+        return
+      }
+
+      if (lote) {
+        alert(
+          `✅ Lote encontrado:\n\n` +
+            `Código de lote: ${lote.codigo_lote}\n` +
+            `Producto: ${lote.producto_nombre}\n` +
+            `Código producto: ${lote.producto_codigo}\n` +
+            `Cantidad disponible: ${lote.cantidad_disponible}\n` +
+            `Proveedor: ${lote.proveedor}\n` +
+            `Fecha de compra: ${new Date(lote.fecha_compra).toLocaleDateString("es-ES")}`,
+        )
+
+        // Opcional: abrir detalles del producto
+        productoIdSeleccionado = lote.producto_id
+        document.querySelector(`[data-id="${lote.producto_id}"]`).click()
+      } else {
+        alert(`❌ No se encontró ningún lote con el código: ${codigoLote}`)
+      }
+    },
+  )
+}
+
 // Función para abrir popup de nueva compra
 function abrirPopupNuevaCompra(productoId) {
   const query = `
@@ -401,7 +469,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 })
 
-// Función para registrar nuevo lote (compra) - SIN NÚMERO DE FACTURA
+// Función para registrar nuevo lote (compra) con código único
 function registrarNuevoLote() {
   if (!productoSeleccionadoStock) {
     alert("Error: No se ha seleccionado un producto")
@@ -443,145 +511,169 @@ function registrarNuevoLote() {
   const nuevoStock = stockActual + cantidad
   const totalCompra = cantidad * precioUnitario
 
-  // Confirmación
-  const confirmar = confirm(
-    `¿Confirmas el registro de este nuevo lote?\n\n` +
-      `Producto: ${productoSeleccionadoStock.nombre}\n` +
-      `Cantidad: ${cantidad} unidades\n` +
-      `Precio unitario: $${precioUnitario.toFixed(2)}\n` +
-      `Total de compra: $${totalCompra.toFixed(2)}\n` +
-      `Proveedor: ${proveedor}\n` +
-      `Stock actual: ${stockActual}\n` +
-      `Stock nuevo: ${nuevoStock}\n\n` +
-      `Este lote será independiente y seguirá la lógica PEPS para las ventas.`,
-  )
-
-  if (!confirmar) return
-
   // Deshabilitar botón durante el proceso
   const btnConfirmar = document.getElementById("btn-confirmar-compra")
   const textoOriginal = btnConfirmar.innerHTML
   btnConfirmar.disabled = true
-  btnConfirmar.innerHTML = '<span class="btn-icon">⏳</span>Registrando lote...'
+  btnConfirmar.innerHTML = '<span class="btn-icon">⏳</span>Generando código de lote...'
 
-  // Obtener usuario actual
-  const usuarioActual = sessionStorage.getItem("usuarioActual") || "Sistema"
+  // Generar código de lote primero
+  generarCodigoLote(productoSeleccionadoStock.id, (err, codigoLote) => {
+    if (err) {
+      console.error("Error generando código de lote:", err.message)
+      btnConfirmar.disabled = false
+      btnConfirmar.innerHTML = textoOriginal
+      alert("Error al generar código de lote.")
+      return
+    }
 
-  // Iniciar transacción
-  db.serialize(() => {
-    db.run("BEGIN TRANSACTION")
+    // Confirmación con código de lote
+    const confirmar = confirm(
+      `¿Confirmas el registro de este nuevo lote?\n\n` +
+        `Producto: ${productoSeleccionadoStock.nombre}\n` +
+        `Código de lote: ${codigoLote}\n` +
+        `Cantidad: ${cantidad} unidades\n` +
+        `Precio unitario: $${precioUnitario.toFixed(2)}\n` +
+        `Total de compra: $${totalCompra.toFixed(2)}\n` +
+        `Proveedor: ${proveedor}\n` +
+        `Stock actual: ${stockActual}\n` +
+        `Stock nuevo: ${nuevoStock}\n\n` +
+        `Este lote será independiente y seguirá la lógica PEPS para las ventas.`,
+    )
 
-    // 1. Crear nuevo lote (SIN numero_factura)
-    db.run(
-      `INSERT INTO lotes
-        (producto_id, cantidad_inicial, cantidad_disponible, precio_compra_unitario,
-         proveedor, fecha_compra, observaciones, usuario_registro)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-      [
-        productoSeleccionadoStock.id,
-        cantidad,
-        cantidad, // cantidad_disponible = cantidad_inicial al crear
-        precioUnitario,
-        proveedor,
-        fechaCompra,
-        observaciones,
-        usuarioActual,
-      ],
-      function (err) {
-        if (err) {
-          console.error("Error al crear lote:", err.message)
-          db.run("ROLLBACK")
-          btnConfirmar.disabled = false
-          btnConfirmar.innerHTML = textoOriginal
-          alert("Error al crear el lote. Inténtalo nuevamente.")
-          return
-        }
+    if (!confirmar) {
+      btnConfirmar.disabled = false
+      btnConfirmar.innerHTML = textoOriginal
+      return
+    }
 
-        const loteId = this.lastID
+    btnConfirmar.innerHTML = '<span class="btn-icon">⏳</span>Registrando lote...'
 
-        // 2. Registrar movimiento de stock (SIN referencia a factura)
-        db.run(
-          `INSERT INTO movimientos_stock
-            (producto_id, lote_id, tipo_movimiento, cantidad, precio_unitario,
-             motivo, observaciones, fecha_movimiento, stock_anterior, stock_nuevo, usuario)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-          [
-            productoSeleccionadoStock.id,
-            loteId,
-            "entrada",
-            cantidad,
-            precioUnitario,
-            "Nueva compra - Lote creado",
-            `Proveedor: ${proveedor}`,
-            fechaCompra,
-            stockActual,
-            nuevoStock,
-            usuarioActual,
-          ],
-          (err) => {
-            if (err) {
-              console.error("Error al registrar movimiento:", err.message)
-              db.run("ROLLBACK")
-              btnConfirmar.disabled = false
-              btnConfirmar.innerHTML = textoOriginal
-              alert("Error al registrar el movimiento. Inténtalo nuevamente.")
-              return
+    // Obtener usuario actual
+    const usuarioActual = sessionStorage.getItem("usuarioActual") || "Sistema"
+
+    // Iniciar transacción
+    db.serialize(() => {
+      db.run("BEGIN TRANSACTION")
+
+      // 1. Crear nuevo lote con código
+      db.run(
+        `INSERT INTO lotes
+          (producto_id, codigo_lote, cantidad_inicial, cantidad_disponible, precio_compra_unitario,
+           proveedor, fecha_compra, observaciones, usuario_registro)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        [
+          productoSeleccionadoStock.id,
+          codigoLote,
+          cantidad,
+          cantidad, // cantidad_disponible = cantidad_inicial al crear
+          precioUnitario,
+          proveedor,
+          fechaCompra,
+          observaciones,
+          usuarioActual,
+        ],
+        function (err) {
+          if (err) {
+            console.error("Error al crear lote:", err.message)
+            db.run("ROLLBACK")
+            btnConfirmar.disabled = false
+            btnConfirmar.innerHTML = textoOriginal
+            if (err.message.includes("UNIQUE")) {
+              alert("Error: Ya existe un lote con ese código. Inténtalo nuevamente.")
+            } else {
+              alert("Error al crear el lote. Inténtalo nuevamente.")
             }
+            return
+          }
 
-            // 3. Confirmar transacción
-            db.run("COMMIT", (err) => {
-              btnConfirmar.disabled = false
-              btnConfirmar.innerHTML = textoOriginal
+          const loteId = this.lastID
 
+          // 2. Registrar movimiento de stock
+          db.run(
+            `INSERT INTO movimientos_stock
+              (producto_id, lote_id, tipo_movimiento, cantidad, precio_unitario,
+               motivo, observaciones, fecha_movimiento, stock_anterior, stock_nuevo, usuario)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+            [
+              productoSeleccionadoStock.id,
+              loteId,
+              "entrada",
+              cantidad,
+              precioUnitario,
+              "Nueva compra - Lote creado",
+              `Proveedor: ${proveedor} | Código: ${codigoLote}`,
+              fechaCompra,
+              stockActual,
+              nuevoStock,
+              usuarioActual,
+            ],
+            (err) => {
               if (err) {
-                console.error("Error al confirmar transacción:", err.message)
-                alert("Error al confirmar la operación.")
+                console.error("Error al registrar movimiento:", err.message)
+                db.run("ROLLBACK")
+                btnConfirmar.disabled = false
+                btnConfirmar.innerHTML = textoOriginal
+                alert("Error al registrar el movimiento. Inténtalo nuevamente.")
                 return
               }
 
-              // Éxito
-              alert(
-                `✅ Nuevo lote registrado exitosamente\n\n` +
-                  `Lote ID: ${loteId}\n` +
-                  `Cantidad: ${cantidad} unidades\n` +
-                  `Precio unitario: $${precioUnitario.toFixed(2)}\n` +
-                  `Total de compra: $${totalCompra.toFixed(2)}\n` +
-                  `Proveedor: ${proveedor}\n` +
-                  `Stock anterior: ${stockActual}\n` +
-                  `Stock nuevo: ${nuevoStock}`,
-              )
+              // 3. Confirmar transacción
+              db.run("COMMIT", (err) => {
+                btnConfirmar.disabled = false
+                btnConfirmar.innerHTML = textoOriginal
 
-              // Actualizar la vista dinámicamente
-              const stockElement = document.getElementById(`stock-${productoSeleccionadoStock.id}`)
-              if (stockElement) {
-                stockElement.textContent = nuevoStock
-                // Efecto visual de actualización
-                stockElement.style.backgroundColor = "#4CAF50"
-                stockElement.style.color = "white"
-                stockElement.style.fontWeight = "bold"
-                stockElement.style.transition = "all 0.3s ease"
-                setTimeout(() => {
-                  stockElement.style.backgroundColor = ""
-                  stockElement.style.color = ""
-                  stockElement.style.fontWeight = ""
-                }, 2000)
-              }
+                if (err) {
+                  console.error("Error al confirmar transacción:", err.message)
+                  alert("Error al confirmar la operación.")
+                  return
+                }
 
-              // Recargar datos para actualizar la vista
-              cargarInventarioDesdeDB()
+                // Éxito
+                alert(
+                  `✅ Nuevo lote registrado exitosamente\n\n` +
+                    `Código de lote: ${codigoLote}\n` +
+                    `Cantidad: ${cantidad} unidades\n` +
+                    `Precio unitario: $${precioUnitario.toFixed(2)}\n` +
+                    `Total de compra: $${totalCompra.toFixed(2)}\n` +
+                    `Proveedor: ${proveedor}\n` +
+                    `Stock anterior: ${stockActual}\n` +
+                    `Stock nuevo: ${nuevoStock}\n\n` +
+                    `📋 Anota este código para localizar el lote en el almacén: ${codigoLote}`,
+                )
 
-              // Cerrar popup
-              document.getElementById("popup-actualizar-stock").classList.add("oculto")
+                // Actualizar la vista dinámicamente
+                const stockElement = document.getElementById(`stock-${productoSeleccionadoStock.id}`)
+                if (stockElement) {
+                  stockElement.textContent = nuevoStock
+                  // Efecto visual de actualización
+                  stockElement.style.backgroundColor = "#4CAF50"
+                  stockElement.style.color = "white"
+                  stockElement.style.fontWeight = "bold"
+                  stockElement.style.transition = "all 0.3s ease"
+                  setTimeout(() => {
+                    stockElement.style.backgroundColor = ""
+                    stockElement.style.color = ""
+                    stockElement.style.fontWeight = ""
+                  }, 2000)
+                }
 
-              // Actualizar precio de venta basado en costo promedio ponderado
-              actualizarPrecioVentaPromedio(productoSeleccionadoStock.id)
+                // Recargar datos para actualizar la vista
+                cargarInventarioDesdeDB()
 
-              console.log(`Nuevo lote creado: ${productoSeleccionadoStock.nombre} - Lote ${loteId}`)
-            })
-          },
-        )
-      },
-    )
+                // Cerrar popup
+                document.getElementById("popup-actualizar-stock").classList.add("oculto")
+
+                // Actualizar precio de venta basado en costo promedio ponderado
+                actualizarPrecioVentaPromedio(productoSeleccionadoStock.id)
+
+                console.log(`Nuevo lote creado: ${productoSeleccionadoStock.nombre} - Código: ${codigoLote}`)
+              })
+            },
+          )
+        },
+      )
+    })
   })
 }
 
@@ -623,9 +715,15 @@ document.getElementById("btn-historial-stock").addEventListener("click", () => {
         contenedor.innerHTML = `
   <div class="historial-header">
     <h3>📦 Historial de Lotes (PEPS)</h3>
-    <button id="btn-exportar-pdf" class="btn-exportar" title="Exportar historial">
-      📄 Exportar 
-    </button>
+    <div class="header-actions">
+      <div class="buscar-lote">
+        <input type="text" id="buscar-codigo-lote" placeholder="Buscar por código de lote..." style="padding: 0.3rem; margin-right: 0.5rem; border-radius: 4px; border: 1px solid #880808; background: #1e1e1e; color: #f2f3d9;">
+        <button id="btn-buscar-lote" class="btn-buscar" title="Buscar lote">🔍</button>
+      </div>
+      <button id="btn-exportar-pdf" class="btn-exportar" title="Exportar historial">
+        📄 Exportar 
+      </button>
+    </div>
   </div>
 `
 
@@ -658,7 +756,7 @@ document.getElementById("btn-historial-stock").addEventListener("click", () => {
             contenedor.innerHTML += `
       <div class="lote-item lote-activo" data-lote-id="${lote.id}">
         <div class="lote-header">
-          <span class="lote-orden">Lote #${lote.id} (PEPS: ${ordenPEPS}°)</span>
+          <span class="lote-orden">📦 ${lote.codigo_lote} (PEPS: ${ordenPEPS}°)</span>
           <div class="lote-header-right">
             <span class="lote-estado">Activo</span>
             <span class="lote-fecha">${fechaFormateada}</span>
@@ -700,7 +798,7 @@ document.getElementById("btn-historial-stock").addEventListener("click", () => {
             contenedor.innerHTML += `
       <div class="lote-item lote-agotado" data-lote-id="${lote.id}">
         <div class="lote-header">
-          <span class="lote-orden">Lote #${lote.id}</span>
+          <span class="lote-orden">📦 ${lote.codigo_lote}</span>
           <div class="lote-header-right">
             <span class="lote-estado">Agotado</span>
             <span class="lote-fecha">${fechaFormateada}</span>
@@ -710,7 +808,7 @@ document.getElementById("btn-historial-stock").addEventListener("click", () => {
           <div class="lote-info-grid">
             <div>
               <p><strong>Cantidad inicial:</strong> ${lote.cantidad_inicial} unidades</p>
-              <p><strong>Disponible:</strong> ${lote.cantidad_vendida} unidades</p>
+              <p><strong>Vendido:</strong> ${lote.cantidad_vendida} unidades</p>
             </div>
             <div>
               <p><strong>Precio unitario:</strong> $${lote.precio_compra_unitario.toFixed(2)}</p>
@@ -727,8 +825,6 @@ document.getElementById("btn-historial-stock").addEventListener("click", () => {
 
         boton.textContent = "Ocultar Historial"
         historialStockVisible = true
-
-        // NO AGREGAR EVENT LISTENER AQUÍ - SE MANEJA CON DELEGACIÓN DE EVENTOS
       },
     )
   } else {
@@ -754,8 +850,6 @@ function exportarHistorialTexto(lotes) {
   generarPDFHistorial(lotes)
 }
 
-// En la función generarPDFHistorial, reemplazar la lógica de ventana con:
-
 // Función separada para generar el PDF
 function generarPDFHistorial(lotes) {
   db.get(
@@ -776,7 +870,7 @@ function generarPDFHistorial(lotes) {
       // Generar nombre de archivo normalizado
       const fechaActual = new Date().toISOString().split("T")[0] // YYYY-MM-DD
       const nombreProductoLimpio = producto.nombre.replace(/[^a-zA-Z0-9]/g, "_").toLowerCase()
-      const nombreArchivo = `lote-${nombreProductoLimpio}-${fechaActual}.pdf`
+      const nombreArchivo = `lotes-${nombreProductoLimpio}-${fechaActual}.pdf`
 
       // Generar contenido HTML para PDF
       const fechaExportacion = new Date().toLocaleDateString("es-ES", {
@@ -854,6 +948,10 @@ function generarPDFHistorial(lotes) {
               color: #f44336;
               border: 1px solid #f44336;
             }
+            .lote-item {67,54,0.1);
+              color: #f44336;
+              border: 1px solid #f44336;
+            }
             .lote-item {
               background-color: #f5f5f5;
               padding: 15px;
@@ -877,6 +975,14 @@ function generarPDFHistorial(lotes) {
               grid-template-columns: 1fr 1fr;
               gap: 15px;
               margin-bottom: 10px;
+            }
+            .codigo-lote {
+              background-color: #880808;
+              color: white;
+              padding: 2px 8px;
+              border-radius: 4px;
+              font-family: monospace;
+              font-weight: bold;
             }
             .footer {
               text-align: center;
@@ -926,7 +1032,7 @@ function generarPDFHistorial(lotes) {
           contenidoHTML += `
             <div class="lote-item">
               <div class="lote-header">
-                <span>Lote #${lote.id} (PEPS: ${index + 1}°)</span>
+                <span><span class="codigo-lote">${lote.codigo_lote}</span> (PEPS: ${index + 1}°)</span>
                 <span>${fechaFormateada}</span>
               </div>
               <div class="lote-detalle">
@@ -956,7 +1062,7 @@ function generarPDFHistorial(lotes) {
           contenidoHTML += `
             <div class="lote-item lote-agotado">
               <div class="lote-header">
-                <span>Lote #${lote.id}</span>
+                <span><span class="codigo-lote">${lote.codigo_lote}</span></span>
                 <span>${fechaFormateada}</span>
               </div>
               <div class="lote-detalle">
@@ -980,6 +1086,7 @@ function generarPDFHistorial(lotes) {
           <div class="footer">
             <p>Reporte generado por SIMETRIC GYM - Sistema de Gestión de Inventario</p>
             <p>Fecha de generación: ${new Date().toLocaleDateString("es-ES")} a las ${new Date().toLocaleTimeString("es-ES")}</p>
+            <p><strong>Códigos de lote para búsqueda en almacén</strong></p>
           </div>
         </body>
         </html>
@@ -1003,11 +1110,6 @@ function generarPDFHistorial(lotes) {
       // Dar tiempo para que se cargue el contenido y luego mostrar diálogo de impresión
       setTimeout(() => {
         ventanaHistorial.print()
-
-        // Mostrar alerta con instrucciones de guardado
-        setTimeout(() => {
-          
-        }, 500)
       }, 500)
     },
   )
@@ -1018,7 +1120,7 @@ document.getElementById("cerrar-popup-inv").addEventListener("click", () => {
   const historialContenedor = document.getElementById("historial-stock")
   historialContenedor.classList.add("hidden")
   historialContenedor.innerHTML = ""
-  document.getElementById("btn-historial-stock").textContent = "Ver Historial de Stock"
+  document.getElementById("btn-historial-stock").textContent = "Ver Historial de Lotes"
   historialStockVisible = false
   lotesActuales = [] // Limpiar datos
   document.getElementById("popup-detalles-inv").classList.add("oculto")

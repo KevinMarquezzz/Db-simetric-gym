@@ -1,5 +1,4 @@
 const sqlite3 = require("sqlite3").verbose()
-
 const db = new sqlite3.Database("simetricdb.sqlite", (err) => {
   if (err) {
     console.error("Error al conectar con la base de datos:", err.message)
@@ -95,15 +94,15 @@ function cargarNominasParaPago() {
   })
 }
 
-// Función para mostrar resumen de pagos
+// Función para mostrar resumen de pagos (ACTUALIZADA CON UTILIDADES)
 function mostrarResumenPagos() {
   const totalEmpleados = nominasParaPago.length
   const totalPendiente = nominasParaPago
     .filter((n) => n.estatus !== "pagada")
-    .reduce((sum, n) => sum + (n.sueldo_neto || 0), 0)
+    .reduce((sum, n) => sum + (n.sueldo_neto || 0) + (n.utilidades || 0), 0)
   const totalPagado = nominasParaPago
     .filter((n) => n.estatus === "pagada")
-    .reduce((sum, n) => sum + (n.sueldo_neto || 0), 0)
+    .reduce((sum, n) => sum + (n.sueldo_neto || 0) + (n.utilidades || 0), 0)
   const empleadosPendientes = nominasParaPago.filter((n) => n.estatus !== "pagada").length
 
   document.getElementById("total-empleados-pago").textContent = totalEmpleados
@@ -114,30 +113,38 @@ function mostrarResumenPagos() {
   document.getElementById("resumen-pagos").style.display = "block"
 }
 
-// Función para renderizar nóminas para pago
+// Función para renderizar nóminas para pago (ACTUALIZADA CON UTILIDADES)
 function renderizarNominasPago() {
   const container = document.getElementById("pagos-container")
+  const mes = Number.parseInt(document.getElementById("mes-pago").value)
 
   const nominasHTML = nominasParaPago
     .map((nomina) => {
       const estatusClass =
         nomina.estatus === "pagada" ? "pagada" : nomina.estatus === "procesada" ? "procesada" : "pendiente"
 
+      // Calcular total a pagar (nómina + utilidades)
+      const totalAPagar = (nomina.sueldo_neto || 0) + (nomina.utilidades || 0)
+
+      // Formatear nombre completo
+      const nombreCompleto = `${(nomina.nombre || "").trim()} ${(nomina.apellido || "").trim()}`.trim()
+
       return `
       <div class="nomina-pago ${estatusClass}">
         <div class="pago-header">
           <div class="checkbox-container">
-            <input type="checkbox" class="nomina-checkbox" data-nomina-id="${nomina.id}" 
+            <input type="checkbox" class="nomina-checkbox" data-nomina-id="${nomina.id}"
                    ${nomina.estatus === "pagada" ? "disabled" : ""}>
           </div>
           <div class="empleado-info">
-            <h4>${nomina.nombre} ${nomina.apellido}</h4>
+            <h4>${nombreCompleto || "Nombre no disponible"}</h4>
             <div class="empleado-cargo">${formatearCargo(nomina.cargo)}</div>
             <div class="empleado-banco">${nomina.banco || "Sin banco"} - ${nomina.cuenta_bancaria || "Sin cuenta"}</div>
           </div>
           <div class="pago-status">
             <span class="status-badge status-${nomina.estatus}">${nomina.estatus.toUpperCase()}</span>
-            <div class="pago-monto">$${(nomina.sueldo_neto || 0).toFixed(2)}</div>
+            <div class="pago-monto">$${totalAPagar.toFixed(2)}</div>
+            ${mes === 12 && nomina.utilidades > 0 ? `<div class="pago-utilidades">🎁 +$${(nomina.utilidades || 0).toFixed(2)}</div>` : ""}
           </div>
         </div>
         
@@ -155,14 +162,28 @@ function renderizarNominasPago() {
             <div class="detalle-valor">$${(nomina.total_deducciones || 0).toFixed(2)}</div>
           </div>
           <div class="detalle-item">
+            <div class="detalle-label">Sueldo Neto</div>
+            <div class="detalle-valor">$${(nomina.sueldo_neto || 0).toFixed(2)}</div>
+          </div>
+          ${
+            mes === 12 && nomina.utilidades > 0
+              ? `
+          <div class="detalle-item utilidades">
+            <div class="detalle-label">🎁 Utilidades</div>
+            <div class="detalle-valor">$${(nomina.utilidades || 0).toFixed(2)}</div>
+          </div>
+          `
+              : ""
+          }
+          <div class="detalle-item">
             <div class="detalle-label">Fecha Pago</div>
             <div class="detalle-valor">${nomina.fecha_pago ? new Date(nomina.fecha_pago).toLocaleDateString("es-ES") : "Sin pagar"}</div>
           </div>
         </div>
         
         <div class="pago-acciones">
-          <button class="btn-primary btn-small procesar-pago" data-nomina-id="${nomina.id}" 
-                  ${nomina.estatus === "pagada" ? "disabled" : ""}>
+          <button class="btn-primary btn-small procesar-pago" data-nomina-id="${nomina.id}"
+                   ${nomina.estatus === "pagada" ? "disabled" : ""}>
             💳 ${nomina.estatus === "pagada" ? "Pagado" : "Procesar Pago"}
           </button>
           <button class="btn-info btn-small generar-recibo-individual" data-nomina-id="${nomina.id}">
@@ -182,7 +203,7 @@ function renderizarNominasPago() {
   })
 }
 
-// Función para actualizar selección
+// Función para actualizar selección (ACTUALIZADA CON UTILIDADES)
 function actualizarSeleccion() {
   nominasSeleccionadas.clear()
   document.querySelectorAll(".nomina-checkbox:checked").forEach((checkbox) => {
@@ -198,7 +219,6 @@ function actualizarSeleccion() {
 // Event listeners para acciones de pago
 document.addEventListener("click", (event) => {
   const nominaId = event.target.dataset.nominaId
-
   if (event.target.classList.contains("procesar-pago")) {
     abrirPagoIndividual(nominaId)
   } else if (event.target.classList.contains("generar-recibo-individual")) {
@@ -206,7 +226,7 @@ document.addEventListener("click", (event) => {
   }
 })
 
-// Función para abrir pago individual
+// Función para abrir pago individual (ACTUALIZADA CON UTILIDADES)
 function abrirPagoIndividual(nominaId) {
   const nomina = nominasParaPago.find((n) => n.id == nominaId)
   if (!nomina) {
@@ -216,16 +236,19 @@ function abrirPagoIndividual(nominaId) {
 
   nominaSeleccionadaPago = nominaId
 
+  // Formatear nombre completo
+  const nombreCompleto = `${(nomina.nombre || "").trim()} ${(nomina.apellido || "").trim()}`.trim()
+
   // Llenar datos del empleado
-  document.getElementById("pago-empleado").value = `${nomina.nombre} ${nomina.apellido}`
+  document.getElementById("pago-empleado").value = nombreCompleto || "Nombre no disponible"
   document.getElementById("pago-periodo").value = nomina.periodo
   document.getElementById("pago-cargo").value = formatearCargo(nomina.cargo)
   document.getElementById("pago-banco").value = nomina.banco || "No especificado"
   document.getElementById("pago-cuenta").value = nomina.cuenta_bancaria || "No especificada"
 
-  // Llenar detalles del pago - Actualizado para usar días feriados en lugar de horas extras
+  // Llenar detalles del pago
   document.getElementById("pago-sueldo-base").textContent = `$${(nomina.sueldo_base || 0).toFixed(2)}`
-  document.getElementById("pago-horas-extras").textContent = `$${(nomina.monto_dias_feriados || 0).toFixed(2)}`
+  document.getElementById("pago-dias-feriados").textContent = `$${(nomina.monto_dias_feriados || 0).toFixed(2)}`
   document.getElementById("pago-bonos").textContent = `$${(nomina.bonos || 0).toFixed(2)}`
   document.getElementById("pago-comisiones").textContent = `$${(nomina.comisiones || 0).toFixed(2)}`
   document.getElementById("pago-total-devengado").textContent = `$${(nomina.total_devengado || 0).toFixed(2)}`
@@ -235,6 +258,22 @@ function abrirPagoIndividual(nominaId) {
   document.getElementById("pago-total-deducciones").textContent = `$${(nomina.total_deducciones || 0).toFixed(2)}`
   document.getElementById("pago-sueldo-neto").textContent = `$${(nomina.sueldo_neto || 0).toFixed(2)}`
 
+  // Mostrar utilidades si es diciembre y hay utilidades
+  const utilidadesSection = document.getElementById("pago-utilidades-section")
+  const totalFinalSection = document.getElementById("pago-total-final-section")
+
+  if (nomina.mes === 12 && nomina.utilidades > 0) {
+    document.getElementById("pago-utilidades").textContent = `$${(nomina.utilidades || 0).toFixed(2)}`
+    utilidadesSection.style.display = "flex"
+
+    const totalFinal = (nomina.sueldo_neto || 0) + (nomina.utilidades || 0)
+    document.getElementById("pago-total-final").textContent = `$${totalFinal.toFixed(2)}`
+    totalFinalSection.style.display = "flex"
+  } else {
+    utilidadesSection.style.display = "none"
+    totalFinalSection.style.display = "none"
+  }
+
   // Limpiar campos del formulario
   document.getElementById("metodo-pago").value = ""
   document.getElementById("referencia-pago").value = ""
@@ -243,7 +282,7 @@ function abrirPagoIndividual(nominaId) {
   document.getElementById("popup-pago").classList.remove("oculto")
 }
 
-// Función para procesar pago individual (CORREGIDA)
+// Función para procesar pago individual (SIN CAMBIOS - ya funciona correctamente)
 document.getElementById("form-pago").addEventListener("submit", (e) => {
   e.preventDefault()
 
@@ -263,10 +302,10 @@ document.getElementById("form-pago").addEventListener("submit", (e) => {
 
   const query = `
     UPDATE nomina 
-    SET estatus = 'pagada', 
-        fecha_pago = ?, 
-        metodo_pago = ?, 
-        referencia_pago = ?, 
+    SET estatus = 'pagada',
+        fecha_pago = ?,
+        metodo_pago = ?,
+        referencia_pago = ?,
         observaciones_pago = ?
     WHERE id = ?
   `
@@ -284,7 +323,7 @@ document.getElementById("form-pago").addEventListener("submit", (e) => {
   })
 })
 
-// Función para abrir pago masivo
+// Función para abrir pago masivo (ACTUALIZADA CON UTILIDADES)
 function abrirPagoMasivo() {
   if (nominasSeleccionadas.size === 0) {
     alert("Por favor seleccione al menos una nómina para pagar.")
@@ -292,9 +331,13 @@ function abrirPagoMasivo() {
   }
 
   const nominasAPagar = nominasParaPago.filter((n) => nominasSeleccionadas.has(n.id))
-  const totalPago = nominasAPagar.reduce((sum, n) => sum + (n.sueldo_neto || 0), 0)
+  const totalNomina = nominasAPagar.reduce((sum, n) => sum + (n.sueldo_neto || 0), 0)
+  const totalUtilidades = nominasAPagar.reduce((sum, n) => sum + (n.utilidades || 0), 0)
+  const totalPago = totalNomina + totalUtilidades
 
   document.getElementById("empleados-seleccionados-count").textContent = nominasSeleccionadas.size
+  document.getElementById("total-nomina-masivo").textContent = totalNomina.toFixed(2)
+  document.getElementById("total-utilidades-masivo").textContent = totalUtilidades.toFixed(2)
   document.getElementById("total-pago-masivo").textContent = totalPago.toFixed(2)
 
   // Limpiar campos del formulario masivo
@@ -304,7 +347,7 @@ function abrirPagoMasivo() {
   document.getElementById("popup-pago-masivo").classList.remove("oculto")
 }
 
-// Función para procesar pago masivo (CORREGIDA)
+// Función para procesar pago masivo (SIN CAMBIOS - ya funciona correctamente)
 document.getElementById("form-pago-masivo").addEventListener("submit", (e) => {
   e.preventDefault()
 
@@ -328,9 +371,9 @@ document.getElementById("form-pago-masivo").addEventListener("submit", (e) => {
   nominasSeleccionadas.forEach((nominaId) => {
     const query = `
       UPDATE nomina 
-      SET estatus = 'pagada', 
-          fecha_pago = ?, 
-          metodo_pago = ?, 
+      SET estatus = 'pagada',
+          fecha_pago = ?,
+          metodo_pago = ?,
           observaciones_pago = ?
       WHERE id = ?
     `
@@ -349,7 +392,6 @@ document.getElementById("form-pago-masivo").addEventListener("submit", (e) => {
         } else {
           alert(`✅ Pago masivo procesado exitosamente para ${total} empleados.`)
         }
-
         document.getElementById("popup-pago-masivo").classList.add("oculto")
         cargarNominasParaPago() // Recargar lista
       }
@@ -357,7 +399,7 @@ document.getElementById("form-pago-masivo").addEventListener("submit", (e) => {
   })
 })
 
-// Función para pagar todos
+// Función para pagar todos (ACTUALIZADA)
 function pagarTodos() {
   const nominasPendientes = nominasParaPago.filter((n) => n.estatus !== "pagada")
 
@@ -391,15 +433,22 @@ function generarReciboIndividual(nominaId) {
   generarReciboPago(nomina)
 }
 
-// Función para generar recibo de pago (ACTUALIZADA)
+// Función para generar recibo de pago (ACTUALIZADA CON UTILIDADES)
 function generarReciboPago(nomina) {
+  // Formatear nombre completo
+  const nombreCompleto = `${(nomina.nombre || "").trim()} ${(nomina.apellido || "").trim()}`.trim()
+
+  // Calcular total final
+  const totalFinal = (nomina.sueldo_neto || 0) + (nomina.utilidades || 0)
+  const tieneUtilidades = nomina.mes === 12 && nomina.utilidades > 0
+
   const contenidoRecibo = `
     <!DOCTYPE html>
     <html lang="es">
     <head>
       <meta charset="UTF-8">
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <title>Recibo de Pago - ${nomina.nombre} ${nomina.apellido}</title>
+      <title>Recibo de Pago - ${nombreCompleto}</title>
       <style>
         body {
           font-family: Arial, sans-serif;
@@ -485,6 +534,17 @@ function generarReciboPago(nomina) {
           font-weight: bold;
           font-size: 1.1em;
         }
+        .utilidades-row {
+          background-color: #fff3cd !important;
+          font-weight: bold;
+          color: #856404;
+        }
+        .final-row {
+          background-color: #d4edda !important;
+          font-weight: bold;
+          font-size: 1.2em;
+          color: #155724;
+        }
         .footer {
           background-color: #f0f0f0;
           padding: 15px;
@@ -514,7 +574,7 @@ function generarReciboPago(nomina) {
       <div class="recibo-container">
         <div class="header">
           <div class="logo">🏋️ SIMETRIC GYM C.A.</div>
-          <div class="subtitle">Recibo de Pago de Nómina</div>
+          <div class="subtitle">Recibo de Pago de Nómina${tieneUtilidades ? " + Utilidades" : ""}</div>
         </div>
 
         <div class="recibo-info">
@@ -522,7 +582,7 @@ function generarReciboPago(nomina) {
             <h3>👤 Información del Empleado</h3>
             <div class="info-item">
               <span class="info-label">Nombre:</span>
-              <span>${nomina.nombre} ${nomina.apellido}</span>
+              <span>${nombreCompleto || "Nombre no disponible"}</span>
             </div>
             <div class="info-item">
               <span class="info-label">Cargo:</span>
@@ -634,9 +694,23 @@ function generarReciboPago(nomina) {
                 <td>-$${(nomina.total_deducciones || 0).toFixed(2)}</td>
               </tr>
               <tr class="total-row">
-                <td><strong>SUELDO NETO A PAGAR</strong></td>
+                <td><strong>SUELDO NETO</strong></td>
                 <td><strong>$${(nomina.sueldo_neto || 0).toFixed(2)}</strong></td>
               </tr>
+              ${
+                tieneUtilidades
+                  ? `
+              <tr class="utilidades-row">
+                <td><strong>🎁 UTILIDADES (30 días)</strong></td>
+                <td><strong>$${(nomina.utilidades || 0).toFixed(2)}</strong></td>
+              </tr>
+              <tr class="final-row">
+                <td><strong>💰 TOTAL A PAGAR</strong></td>
+                <td><strong>$${totalFinal.toFixed(2)}</strong></td>
+              </tr>
+              `
+                  : ""
+              }
             </tbody>
           </table>
           
@@ -651,7 +725,16 @@ function generarReciboPago(nomina) {
           }
         </div>
 
-        
+        <div class="firma-section">
+          <div class="firma-box">
+            <div style="height: 60px;"></div>
+            <div>Firma del Empleado</div>
+          </div>
+          <div class="firma-box">
+            <div style="height: 60px;"></div>
+            <div>Firma del Empleador</div>
+          </div>
+        </div>
 
         <div class="footer">
           <p><strong>SIMETRIC GYM C.A.</strong> | RIF: J-31700635/3</p>
@@ -673,13 +756,12 @@ function generarReciboPago(nomina) {
 
   ventanaRecibo.document.write(contenidoRecibo)
   ventanaRecibo.document.close()
-
   setTimeout(() => {
     ventanaRecibo.print()
   }, 500)
 }
 
-// Función para generar reporte de pagos
+// Función para generar reporte de pagos (ACTUALIZADA CON UTILIDADES)
 function generarReportePagos() {
   if (nominasParaPago.length === 0) {
     alert("No hay datos para generar el reporte.")
@@ -691,10 +773,12 @@ function generarReportePagos() {
 
   const totalPagado = nominasParaPago
     .filter((n) => n.estatus === "pagada")
-    .reduce((sum, n) => sum + (n.sueldo_neto || 0), 0)
+    .reduce((sum, n) => sum + (n.sueldo_neto || 0) + (n.utilidades || 0), 0)
   const totalPendiente = nominasParaPago
     .filter((n) => n.estatus !== "pagada")
-    .reduce((sum, n) => sum + (n.sueldo_neto || 0), 0)
+    .reduce((sum, n) => sum + (n.sueldo_neto || 0) + (n.utilidades || 0), 0)
+
+  const totalUtilidades = nominasParaPago.reduce((sum, n) => sum + (n.utilidades || 0), 0)
   const empleadosPagados = nominasParaPago.filter((n) => n.estatus === "pagada").length
   const empleadosPendientes = nominasParaPago.filter((n) => n.estatus !== "pagada").length
 
@@ -782,6 +866,13 @@ function generarReportePagos() {
         .status-pagada { color: #28a745; font-weight: bold; }
         .status-procesada { color: #ffc107; font-weight: bold; }
         .status-pendiente { color: #dc3545; font-weight: bold; }
+        .utilidades-info {
+          background-color: #fff3cd;
+          padding: 15px;
+          border-radius: 8px;
+          margin-bottom: 20px;
+          border-left: 4px solid #ffc107;
+        }
         .footer {
           text-align: center;
           margin-top: 40px;
@@ -797,6 +888,17 @@ function generarReportePagos() {
         <div class="logo">🏋️ SIMETRIC GYM C.A.</div>
         <div class="subtitle">Reporte de Pagos - ${obtenerNombreMes(mes)} ${año}</div>
       </div>
+
+      ${
+        mes === 12 && totalUtilidades > 0
+          ? `
+      <div class="utilidades-info">
+        <h4 style="color: #856404; margin-bottom: 10px;">🎁 Información de Utilidades</h4>
+        <p style="margin: 0;"><strong>Este período incluye el pago de utilidades (30 días del salario neto) correspondientes al año ${año}.</strong></p>
+      </div>
+      `
+          : ""
+      }
 
       <div class="resumen">
         <h3>📊 Resumen de Pagos</h3>
@@ -821,6 +923,16 @@ function generarReportePagos() {
             <div class="resumen-numero">$${totalPendiente.toFixed(2)}</div>
             <div class="resumen-label">Total Pendiente</div>
           </div>
+          ${
+            totalUtilidades > 0
+              ? `
+          <div class="resumen-item">
+            <div class="resumen-numero">$${totalUtilidades.toFixed(2)}</div>
+            <div class="resumen-label">Total Utilidades</div>
+          </div>
+          `
+              : ""
+          }
         </div>
       </div>
 
@@ -833,6 +945,8 @@ function generarReportePagos() {
             <th>Devengado</th>
             <th>Deducciones</th>
             <th>Neto</th>
+            ${mes === 12 ? "<th>Utilidades</th>" : ""}
+            <th>Total a Pagar</th>
             <th>Fecha Pago</th>
             <th>Método</th>
             <th>Estatus</th>
@@ -840,21 +954,26 @@ function generarReportePagos() {
         </thead>
         <tbody>
           ${nominasParaPago
-            .map(
-              (nomina) => `
+            .map((nomina) => {
+              const nombreCompleto = `${(nomina.nombre || "").trim()} ${(nomina.apellido || "").trim()}`.trim()
+              const totalAPagar = (nomina.sueldo_neto || 0) + (nomina.utilidades || 0)
+
+              return `
           <tr>
-            <td>${nomina.nombre} ${nomina.apellido}</td>
+            <td>${nombreCompleto || "Nombre no disponible"}</td>
             <td>${formatearCargo(nomina.cargo)}</td>
             <td>${nomina.dias_trabajados}</td>
             <td>$${(nomina.total_devengado || 0).toFixed(2)}</td>
             <td>$${(nomina.total_deducciones || 0).toFixed(2)}</td>
             <td>$${(nomina.sueldo_neto || 0).toFixed(2)}</td>
+            ${mes === 12 ? `<td>$${(nomina.utilidades || 0).toFixed(2)}</td>` : ""}
+            <td><strong>$${totalAPagar.toFixed(2)}</strong></td>
             <td>${nomina.fecha_pago ? new Date(nomina.fecha_pago).toLocaleDateString("es-ES") : "-"}</td>
             <td>${nomina.metodo_pago || "-"}</td>
             <td><span class="status-${nomina.estatus}">${nomina.estatus.toUpperCase()}</span></td>
           </tr>
-          `,
-            )
+          `
+            })
             .join("")}
         </tbody>
       </table>
@@ -877,7 +996,6 @@ function generarReportePagos() {
 
   ventanaReporte.document.write(contenidoReporte)
   ventanaReporte.document.close()
-
   setTimeout(() => {
     ventanaReporte.print()
   }, 500)
@@ -937,5 +1055,5 @@ function formatearCargo(cargo) {
     seguridad: "Seguridad",
     otro: "Otro",
   }
-  return cargos[cargo] || cargo
+  return cargos[cargo] || cargo || "N/A"
 }

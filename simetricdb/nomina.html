@@ -10,13 +10,15 @@
 <body>
     <header>
         <h1 id="mainttl">SIMETRIC GYM</h1>
-        <div class="img">             
+        <div class="img">                        
             <img src="resources/logo2_simetricG.png" height="60px" width="60px" alt="">
         </div>
     </header>
+
     <a href="menu_personal.html" class="back_btn">
         <button><img class="icon" src="resources/arrow_back_left_icon.png" alt="" height="40px" width="40px"></button>
     </a>
+
     <section id="nomina-section">
         <div class="container">
             <div class="header-section">
@@ -78,8 +80,6 @@
                 <div class="acciones-nomina">
                     <button id="procesar-nomina" class="btn-success">💾 Procesar Nómina</button>
                     <button id="generar-reporte-nomina" class="btn-info">📄 Generar Reporte</button>
-                    <button id="calcular-prestaciones" class="btn-warning">🏦 Calcular Prestaciones</button>
-                    <button id="calcular-utilidades" class="btn-special">🎁 Calcular Utilidades</button>
                 </div>
             </div>
 
@@ -135,7 +135,6 @@
                             <input type="number" id="bonos" step="0.01" min="0" value="0">
                         </div>
                     </div>
-
                     <div class="popup-row">
                         <div class="popup-field">
                             <label for="comisiones">Comisiones (USD):</label>
@@ -190,6 +189,10 @@
                             <span class="calculo-label">Vacaciones:</span>
                             <span class="calculo-valor" id="vacaciones-calc">$0.00</span>
                         </div>
+                        <div class="calculo-item utilidades">
+                            <span class="calculo-label">🎁 Utilidades (Diciembre):</span>
+                            <span class="calculo-valor" id="utilidades-calc">$0.00</span>
+                        </div>
                     </div>
                 </div>
 
@@ -203,68 +206,6 @@
                     <button type="button" id="cancelar-nomina" class="btn-secondary">❌ Cancelar</button>
                 </div>
             </form>
-        </div>
-    </div>
-
-    <!-- Popup para prestaciones sociales -->
-    <div id="popup-prestaciones" class="popup oculto">
-        <div class="popup-contenido">
-            <span class="cerrar-popup" id="cerrar-popup-prestaciones">&times;</span>
-            <h3>🏦 Cálculo de Prestaciones Sociales</h3>
-            
-            <div class="prestaciones-info">
-                <p><strong>Año de cálculo:</strong> <span id="año-prestaciones"></span></p>
-                <p><strong>Salario mínimo:</strong> $<span id="salario-minimo-prestaciones"></span> USD</p>
-                <p><strong>Nota:</strong> Las prestaciones se calculan como 30 días de salario por año trabajado más intereses del 12% anual.</p>
-            </div>
-            
-            <div class="prestaciones-container" id="prestaciones-container">
-                <!-- Se llenará dinámicamente -->
-            </div>
-            
-            <div class="prestaciones-acciones">
-                <button id="procesar-prestaciones" class="btn-success">💾 Procesar Prestaciones</button>
-                <button id="cancelar-prestaciones" class="btn-secondary">❌ Cancelar</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Popup para utilidades -->
-    <div id="popup-utilidades" class="popup oculto">
-        <div class="popup-contenido">
-            <span class="cerrar-popup" id="cerrar-popup-utilidades">&times;</span>
-            <h3>🎁 Cálculo de Utilidades</h3>
-            
-            <div class="utilidades-config">
-                <div class="config-row">
-                    <div class="config-field">
-                        <label for="año-utilidades">Año:</label>
-                        <select id="año-utilidades">
-                            <!-- Se llenará dinámicamente -->
-                        </select>
-                    </div>
-                    <div class="config-field">
-                        <label for="beneficio-empresa">Beneficio de la Empresa (USD):</label>
-                        <input type="number" id="beneficio-empresa" step="0.01" min="0" placeholder="0.00">
-                    </div>
-                </div>
-                
-                <div class="utilidades-info">
-                    <p><strong>Fórmula:</strong> Mínimo 15 días + distribución proporcional del beneficio</p>
-                    <p><strong>Máximo:</strong> 4 meses de salario por empleado</p>
-                    <p><strong>Base legal:</strong> Artículo 131 de la Ley Orgánica del Trabajo</p>
-                </div>
-            </div>
-            
-            <div class="utilidades-container" id="utilidades-container">
-                <!-- Se llenará dinámicamente -->
-            </div>
-            
-            <div class="utilidades-acciones">
-                <button id="calcular-utilidades-btn" class="btn-primary">🧮 Calcular</button>
-                <button id="procesar-utilidades" class="btn-success" style="display: none;">💾 Procesar Utilidades</button>
-                <button id="cancelar-utilidades" class="btn-secondary">❌ Cancelar</button>
-            </div>
         </div>
     </div>
 

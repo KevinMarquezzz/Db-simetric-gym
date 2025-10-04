@@ -12,13 +12,14 @@ const db = new sqlite3.Database("simetricdb.sqlite", (err) => {
 
 const contenedor = document.getElementById("ventas-container")
 const btnFiltrar = document.getElementById("btn-filtrar")
+const btnLimpiarFiltros = document.getElementById("btn-limpiar-filtros")
 const btnExportarPDF = document.getElementById("btn-exportar-pdf")
 const popup = document.getElementById("popup-detalles-ventas")
 const cerrarPopup = document.getElementById("cerrar-popup-ventas")
 const contenidoDetalles = document.getElementById("contenido-detalles-ventas")
 
 let datosActuales = []
-let filtroActual = ""
+let filtroActual = "Todos los períodos"
 
 // Cargar estadísticas iniciales
 function cargarEstadisticasIniciales() {
@@ -45,11 +46,13 @@ function cargarEstadisticasIniciales() {
   db.all(query, [], (err, rows) => {
     if (err) {
       console.error("Error cargando estadísticas:", err.message)
+      mostrarMensajeError("Error al cargar las estadísticas iniciales")
       return
     }
-    datosActuales = rows
-    renderizarTabla(rows)
-    actualizarResumenGeneral(rows)
+    datosActuales = rows || []
+    filtroActual = "Todos los períodos"
+    renderizarTabla(datosActuales)
+    actualizarResumenGeneral(datosActuales)
   })
 }
 
@@ -58,6 +61,18 @@ btnFiltrar.addEventListener("click", () => {
   const mes = document.getElementById("filtro-mes").value
   const inicio = document.getElementById("fecha-inicio").value
   const fin = document.getElementById("fecha-fin").value
+
+  // Validar que se haya seleccionado al menos un filtro
+  if (!mes && (!inicio || !fin)) {
+    alert("Por favor selecciona un mes o un rango de fechas para filtrar")
+    return
+  }
+
+  // Validar rango de fechas
+  if (inicio && fin && new Date(inicio) > new Date(fin)) {
+    alert("La fecha de inicio no puede ser mayor que la fecha de fin")
+    return
+  }
 
   let whereClause = ""
   const parametros = []
@@ -71,8 +86,6 @@ btnFiltrar.addEventListener("click", () => {
     whereClause = `WHERE date(v.fecha_venta) BETWEEN ? AND ?`
     parametros.push(inicio, fin)
     filtroActual = `Período: ${new Date(inicio).toLocaleDateString("es-ES")} - ${new Date(fin).toLocaleDateString("es-ES")}`
-  } else {
-    filtroActual = "Todos los períodos"
   }
 
   const query = `
@@ -96,22 +109,49 @@ btnFiltrar.addEventListener("click", () => {
     ORDER BY total_vendido DESC
   `
 
+  // Mostrar indicador de carga
+  contenedor.innerHTML = '<div class="loading"><p>🔍 Filtrando datos...</p></div>'
+
   db.all(query, parametros, (err, rows) => {
     if (err) {
       console.error("Error filtrando datos:", err.message)
+      mostrarMensajeError("Error al filtrar los datos")
       return
     }
-    datosActuales = rows
-    renderizarTabla(rows)
-    actualizarResumenGeneral(rows)
+
+    // CORRECCIÓN: Asegurar que rows sea un array, incluso si está vacío
+    datosActuales = rows || []
+    renderizarTabla(datosActuales)
+    actualizarResumenGeneral(datosActuales)
+
+    console.log(`✅ Filtro aplicado: ${filtroActual} - ${datosActuales.length} productos encontrados`)
   })
+})
+
+// Event listener para limpiar filtros
+btnLimpiarFiltros.addEventListener("click", () => {
+  // Limpiar campos de filtro
+  document.getElementById("filtro-mes").value = ""
+  document.getElementById("fecha-inicio").value = ""
+  document.getElementById("fecha-fin").value = ""
+
+  // Recargar datos iniciales
+  filtroActual = "Todos los períodos"
+  cargarEstadisticasIniciales()
 })
 
 // Renderizar tabla de productos más vendidos
 function renderizarTabla(data) {
+  // CORRECCIÓN: Verificar correctamente si no hay datos
   if (!data || data.length === 0) {
-    contenedor.innerHTML =
-      '<p style="text-align: center; padding: 2rem; color: #888;">No se encontraron datos para el período seleccionado.</p>'
+    contenedor.innerHTML = `
+      <div class="no-datos-mensaje">
+        <p>📊 No se encontraron ventas para el período seleccionado</p>
+        <p style="font-size: 0.9rem; margin-top: 0.5rem; opacity: 0.8;">
+          Intenta seleccionar un período diferente o usar el botón "Limpiar" para ver todos los datos.
+        </p>
+      </div>
+    `
     return
   }
 
@@ -154,18 +194,22 @@ function renderizarTabla(data) {
   contenedor.innerHTML = html
 }
 
-// Actualizar resumen general
+// CORRECCIÓN: Actualizar resumen general con datos filtrados correctos
 function actualizarResumenGeneral(data) {
-  if (!data || data.length === 0) return
+  // Calcular estadísticas basadas en los datos filtrados
+  const totalProductos = data ? data.length : 0
+  const totalUnidadesVendidas = data ? data.reduce((sum, p) => sum + (p.total_vendido || 0), 0) : 0
+  const totalIngresos = data ? data.reduce((sum, p) => sum + (p.total_ingresos || 0), 0) : 0
+  const totalVentas = data ? data.reduce((sum, p) => sum + (p.total_ventas || 0), 0) : 0
 
-  const totalProductos = data.length
-  const totalUnidadesVendidas = data.reduce((sum, p) => sum + p.total_vendido, 0)
-  const totalIngresos = data.reduce((sum, p) => sum + p.total_ingresos, 0)
-  const totalVentas = data.reduce((sum, p) => sum + p.total_ventas, 0)
+  // Determinar si es un período sin datos
+  const sinDatos = totalProductos === 0
+  const claseResumen = sinDatos ? "resumen-estadisticas sin-datos" : "resumen-estadisticas"
 
   const resumenHTML = `
-    <div class="resumen-estadisticas">
+    <div class="${claseResumen}">
       <h3>📊 Resumen del Período: ${filtroActual}</h3>
+      ${sinDatos ? '<p style="text-align: center; color: #ff9800; margin-bottom: 1rem;">⚠️ No se registraron ventas en este período</p>' : ""}
       <div class="resumen-grid">
         <div class="resumen-item">
           <div class="resumen-valor">${totalProductos}</div>
@@ -188,12 +232,28 @@ function actualizarResumenGeneral(data) {
   `
 
   // Insertar o actualizar el resumen
-  const resumenExistente = document.querySelector(".resumen-estadisticas")
+  const resumenExistente = document.querySelector(".resumen-estadisticas, .sin-datos")
   if (resumenExistente) {
     resumenExistente.outerHTML = resumenHTML
   } else {
     contenedor.insertAdjacentHTML("beforebegin", resumenHTML)
   }
+
+  console.log(
+    `📊 Resumen actualizado: ${totalProductos} productos, ${totalUnidadesVendidas} unidades, $${totalIngresos.toFixed(2)} ingresos`,
+  )
+}
+
+// Función para mostrar mensajes de error
+function mostrarMensajeError(mensaje) {
+  contenedor.innerHTML = `
+    <div style="text-align: center; padding: 3rem; color: #ff4d4d; font-size: 1.1rem; background-color: rgba(255, 77, 77, 0.1); border-radius: 8px; border: 1px solid #ff4d4d;">
+      <p>❌ ${mensaje}</p>
+      <p style="font-size: 0.9rem; margin-top: 0.5rem; opacity: 0.8;">
+        Por favor, verifica la conexión a la base de datos o contacta al administrador.
+      </p>
+    </div>
+  `
 }
 
 // Event listener para ver detalles del producto
@@ -204,7 +264,7 @@ contenedor.addEventListener("click", (e) => {
   }
 })
 
-// Mostrar análisis detallado del producto
+// Mostrar análisis detallado del producto (con filtros aplicados)
 function mostrarAnalisisDetallado(codigo) {
   // Obtener información básica del producto
   db.get("SELECT * FROM productos WHERE codigo = ?", [codigo], (err, producto) => {
@@ -218,7 +278,24 @@ function mostrarAnalisisDetallado(codigo) {
       return
     }
 
-    // Obtener análisis detallado de ventas
+    // Construir query con los mismos filtros aplicados
+    const mes = document.getElementById("filtro-mes").value
+    const inicio = document.getElementById("fecha-inicio").value
+    const fin = document.getElementById("fecha-fin").value
+
+    let whereClause = "WHERE p.codigo = ?"
+    const parametros = [codigo]
+
+    if (mes) {
+      const [año, mesNum] = mes.split("-")
+      whereClause += ` AND strftime('%Y-%m', v.fecha_venta) = ?`
+      parametros.push(`${año}-${mesNum}`)
+    } else if (inicio && fin) {
+      whereClause += ` AND date(v.fecha_venta) BETWEEN ? AND ?`
+      parametros.push(inicio, fin)
+    }
+
+    // Obtener análisis detallado de ventas con filtros
     const queryAnalisis = `
       SELECT 
         v.fecha_venta,
@@ -232,13 +309,33 @@ function mostrarAnalisisDetallado(codigo) {
       FROM ventas v
       INNER JOIN detalle_ventas dv ON v.id = dv.venta_id
       INNER JOIN productos p ON dv.producto_id = p.id
-      WHERE p.codigo = ?
+      ${whereClause}
       ORDER BY v.fecha_venta DESC
     `
 
-    db.all(queryAnalisis, [codigo], (err, ventas) => {
+    db.all(queryAnalisis, parametros, (err, ventas) => {
       if (err) {
         console.error("Error obteniendo análisis:", err.message)
+        return
+      }
+
+      // Si no hay ventas en el período filtrado
+      if (!ventas || ventas.length === 0) {
+        contenidoDetalles.innerHTML = `
+          <div class="analisis-detallado">
+            <div class="producto-header">
+              <h4>📦 ${producto.nombre}</h4>
+              <p><strong>Código:</strong> ${producto.codigo} | <strong>Categoría:</strong> ${producto.categoria} | <strong>Marca:</strong> ${producto.marca}</p>
+            </div>
+            <div style="text-align: center; padding: 2rem; color: #ff9800; background-color: rgba(255, 152, 0, 0.1); border-radius: 8px; border: 1px solid #ff9800;">
+              <p>📊 No se encontraron ventas de este producto en el período seleccionado</p>
+              <p style="font-size: 0.9rem; margin-top: 0.5rem; opacity: 0.8;">
+                Período analizado: ${filtroActual}
+              </p>
+            </div>
+          </div>
+        `
+        popup.classList.remove("oculto")
         return
       }
 
@@ -285,10 +382,11 @@ function mostrarAnalisisDetallado(codigo) {
           <div class="producto-header">
             <h4>📦 ${producto.nombre}</h4>
             <p><strong>Código:</strong> ${producto.codigo} | <strong>Categoría:</strong> ${producto.categoria} | <strong>Marca:</strong> ${producto.marca}</p>
+            <p style="color: #ff9800; font-size: 0.9rem; margin-top: 0.5rem;"><strong>Período analizado:</strong> ${filtroActual}</p>
           </div>
 
           <div class="estadisticas-generales">
-            <h5>📊 Estadísticas Generales</h5>
+            <h5>📊 Estadísticas del Período</h5>
             <div class="stats-grid">
               <div class="stat-item">
                 <span class="stat-value">${totalVentas}</span>
@@ -340,7 +438,7 @@ function mostrarAnalisisDetallado(codigo) {
           </div>
 
           <div class="ventas-recientes">
-            <h5>🕒 Últimas 10 Ventas</h5>
+            <h5>🕒 Últimas 10 Ventas del Período</h5>
             <div class="ventas-lista">
               ${ventas
                 .slice(0, 10)
@@ -379,7 +477,7 @@ function obtenerNombreMetodoPago(metodo) {
 // Event listener para exportar PDF
 btnExportarPDF.addEventListener("click", () => {
   if (!datosActuales || datosActuales.length === 0) {
-    alert("No hay datos para exportar")
+    alert("No hay datos para exportar en el período seleccionado")
     return
   }
 
@@ -569,6 +667,7 @@ function exportarEstadisticasPDF() {
       <div class="footer">
         <p>Reporte generado por SIMETRIC GYM - Sistema de Gestión de Ventas</p>
         <p>Fecha de generación: ${new Date().toLocaleDateString("es-ES")} a las ${new Date().toLocaleTimeString("es-ES")}</p>
+        <p><strong>Período del reporte:</strong> ${filtroActual}</p>
       </div>
     </body>
     </html>
@@ -577,16 +676,11 @@ function exportarEstadisticasPDF() {
   // Abrir ventana para imprimir/guardar como PDF
   const ventanaEstadisticas = window.open("", "", "width=800,height=600")
   ventanaEstadisticas.document.write(contenidoHTML)
-  
+  ventanaEstadisticas.document.close()
 
   // Dar tiempo para que se cargue el contenido y luego mostrar diálogo de impresión
   setTimeout(() => {
     ventanaEstadisticas.print()
-
-    // Mostrar alerta después de iniciar la impresión
-    setTimeout(() => {
-      
-    }, 500)
   }, 500)
 }
 

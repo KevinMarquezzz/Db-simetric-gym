@@ -76,6 +76,7 @@ db.run(`CREATE TABLE IF NOT EXISTS nomina (
   fecha_creacion TEXT NOT NULL,
   FOREIGN KEY (empleado_id) REFERENCES empleados(id)
 )`)
+
 // Crear tabla de prestaciones sociales
 db.run(`CREATE TABLE IF NOT EXISTS prestaciones_sociales (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -101,6 +102,61 @@ db.run(`CREATE TABLE IF NOT EXISTS asistencia (
   observaciones TEXT,
   FOREIGN KEY (empleado_id) REFERENCES empleados(id)
 )`)
+
+// Crear tablas de inventario con códigos de lote
+db.run(`CREATE TABLE IF NOT EXISTS productos (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  nombre TEXT NOT NULL,
+  codigo TEXT UNIQUE NOT NULL,
+  categoria TEXT NOT NULL,
+  marca TEXT NOT NULL,
+  precio_compra REAL NOT NULL,
+  precio_venta REAL NOT NULL,
+  stock INTEGER NOT NULL DEFAULT 0,
+  unidad TEXT NOT NULL,
+  proveedor TEXT NOT NULL,
+  descripcion TEXT NOT NULL,
+  fecha_registro TEXT NOT NULL
+)`)
+
+db.run(`CREATE TABLE IF NOT EXISTS lotes (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  producto_id INTEGER NOT NULL,
+  codigo_lote TEXT UNIQUE NOT NULL,
+  cantidad_inicial INTEGER NOT NULL,
+  cantidad_disponible INTEGER NOT NULL,
+  precio_compra_unitario REAL NOT NULL,
+  proveedor TEXT NOT NULL,
+  numero_factura TEXT,
+  fecha_compra TEXT NOT NULL,
+  fecha_vencimiento TEXT,
+  observaciones TEXT,
+  usuario_registro TEXT,
+  activo INTEGER DEFAULT 1,
+  FOREIGN KEY (producto_id) REFERENCES productos(id)
+)`)
+
+db.run(`CREATE TABLE IF NOT EXISTS movimientos_stock (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  producto_id INTEGER NOT NULL,
+  lote_id INTEGER,
+  tipo_movimiento TEXT NOT NULL,
+  cantidad INTEGER NOT NULL,
+  precio_unitario REAL,
+  motivo TEXT,
+  observaciones TEXT,
+  fecha_movimiento TEXT NOT NULL,
+  stock_anterior INTEGER NOT NULL,
+  stock_nuevo INTEGER NOT NULL,
+  usuario TEXT,
+  FOREIGN KEY (producto_id) REFERENCES productos(id),
+  FOREIGN KEY (lote_id) REFERENCES lotes(id)
+)`)
+
+// Crear índices para optimizar búsquedas
+db.run(`CREATE INDEX IF NOT EXISTS idx_lotes_codigo ON lotes(codigo_lote)`)
+db.run(`CREATE INDEX IF NOT EXISTS idx_lotes_producto ON lotes(producto_id)`)
+db.run(`CREATE INDEX IF NOT EXISTS idx_movimientos_producto ON movimientos_stock(producto_id)`)
 
 // Insertar configuración por defecto de tasa si no existe
 db.run(`INSERT OR IGNORE INTO configuraciones (clave, valor, fecha_actualizacion) 

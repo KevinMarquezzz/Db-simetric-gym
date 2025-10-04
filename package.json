@@ -26,5 +26,9 @@
   "devDependencies": {
     "electron": "^29.0.0",
     "electron-builder": "^24.0.0"
+  },
+  "dependencies": {
+    "jspdf": "^3.0.1",
+    "sqlite3": "^5.1.7"
   }
 }

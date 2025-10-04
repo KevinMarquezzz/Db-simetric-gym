@@ -30,11 +30,12 @@ function crearTablas() {
       fecha_registro TEXT NOT NULL
     )`)
 
-  // Tabla lotes
+  // Tabla lotes con código de lote
   db.run(`
     CREATE TABLE IF NOT EXISTS lotes (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       producto_id INTEGER NOT NULL,
+      codigo_lote TEXT UNIQUE NOT NULL,
       cantidad_inicial INTEGER NOT NULL,
       cantidad_disponible INTEGER NOT NULL,
       precio_compra_unitario REAL NOT NULL,
@@ -66,6 +67,24 @@ function crearTablas() {
       FOREIGN KEY (producto_id) REFERENCES productos(id),
       FOREIGN KEY (lote_id) REFERENCES lotes(id)
     )`)
+
+  // Crear índice para búsqueda por código de lote
+  db.run(`CREATE INDEX IF NOT EXISTS idx_lotes_codigo ON lotes(codigo_lote)`)
+}
+
+// Función para generar código de lote
+function generarCodigoLote(productoId, callback) {
+  // Contar lotes existentes para este producto
+  db.get(`SELECT COUNT(*) as total FROM lotes WHERE producto_id = ? AND activo = 1`, [productoId], (err, result) => {
+    if (err) {
+      callback(err, null)
+      return
+    }
+
+    const numeroLote = result.total + 1
+    const codigoLote = `L${String(productoId).padStart(3, "0")}-${String(numeroLote).padStart(3, "0")}`
+    callback(null, codigoLote)
+  })
 }
 
 // Obtener el formulario
@@ -172,88 +191,94 @@ document.querySelector("form").addEventListener("submit", (event) => {
           const productoId = this.lastID
           console.log(`✅ Producto creado con ID: ${productoId}`)
 
-          // 2. Si tiene stock inicial, crear lote inicial
+          // 2. Si tiene stock inicial, crear lote inicial con código
           if (stock_inicial > 0) {
-            db.run(
-              `INSERT INTO lotes
-                (producto_id, cantidad_inicial, cantidad_disponible, precio_compra_unitario,
-                 proveedor, fecha_compra, observaciones, usuario_registro)
-               VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-              [
-                productoId,
-                stock_inicial,
-                stock_inicial,
-                precio_compra,
-                proveedor,
-                fecha_registro,
-                "Lote inicial del producto",
-                usuarioActual,
-              ],
-              function (err) {
-                if (err) {
-                  console.error("Error al crear lote inicial:", err.message)
-                  db.run("ROLLBACK")
-                  alert("Error al crear el lote inicial del producto.")
-                  return
-                }
+            // Generar código de lote
+            generarCodigoLote(productoId, (err, codigoLote) => {
+              if (err) {
+                console.error("Error generando código de lote:", err.message)
+                db.run("ROLLBACK")
+                alert("Error al generar código de lote.")
+                return
+              }
 
-                const loteId = this.lastID
-                // Si se creó un lote inicial, el precio ya está correcto
-                // No necesitamos recalcular porque es el primer lote
-                console.log(
-                  `✅ Lote inicial creado con precio base: $${precio_compra.toFixed(2)} → $${precio_venta.toFixed(2)}`,
-                )
-                console.log(`✅ Lote inicial creado con ID: ${loteId}`)
+              db.run(
+                `INSERT INTO lotes
+                  (producto_id, codigo_lote, cantidad_inicial, cantidad_disponible, precio_compra_unitario,
+                   proveedor, fecha_compra, observaciones, usuario_registro)
+                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+                [
+                  productoId,
+                  codigoLote,
+                  stock_inicial,
+                  stock_inicial,
+                  precio_compra,
+                  proveedor,
+                  fecha_registro,
+                  "Lote inicial del producto",
+                  usuarioActual,
+                ],
+                function (err) {
+                  if (err) {
+                    console.error("Error al crear lote inicial:", err.message)
+                    db.run("ROLLBACK")
+                    alert("Error al crear el lote inicial del producto.")
+                    return
+                  }
 
-                // 3. Registrar movimiento de stock
-                db.run(
-                  `INSERT INTO movimientos_stock
-                    (producto_id, lote_id, tipo_movimiento, cantidad, precio_unitario,
-                     motivo, fecha_movimiento, stock_anterior, stock_nuevo, usuario)
-                   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-                  [
-                    productoId,
-                    loteId,
-                    "entrada",
-                    stock_inicial,
-                    precio_compra,
-                    "Stock inicial del producto",
-                    fecha_registro,
-                    0,
-                    stock_inicial,
-                    usuarioActual,
-                  ],
-                  (err) => {
-                    if (err) {
-                      console.error("Error al registrar movimiento inicial:", err.message)
-                      db.run("ROLLBACK")
-                      alert("Error al registrar el movimiento inicial.")
-                      return
-                    }
+                  const loteId = this.lastID
+                  console.log(`✅ Lote inicial creado con código: ${codigoLote}`)
 
-                    // Confirmar transacción
-                    db.run("COMMIT", (err) => {
+                  // 3. Registrar movimiento de stock
+                  db.run(
+                    `INSERT INTO movimientos_stock
+                      (producto_id, lote_id, tipo_movimiento, cantidad, precio_unitario,
+                       motivo, fecha_movimiento, stock_anterior, stock_nuevo, usuario)
+                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+                    [
+                      productoId,
+                      loteId,
+                      "entrada",
+                      stock_inicial,
+                      precio_compra,
+                      "Stock inicial del producto",
+                      fecha_registro,
+                      0,
+                      stock_inicial,
+                      usuarioActual,
+                    ],
+                    (err) => {
                       if (err) {
-                        console.error("Error al confirmar transacción:", err.message)
-                        alert("Error al confirmar el registro.")
+                        console.error("Error al registrar movimiento inicial:", err.message)
+                        db.run("ROLLBACK")
+                        alert("Error al registrar el movimiento inicial.")
                         return
                       }
 
-                      console.log(`✅ Producto registrado exitosamente: ${nombre}`)
-                      alert(
-                        `✅ Producto registrado exitosamente.\n\n` +
-                          `Producto: ${nombre}\n` +
-                          `Código: ${codigo}\n` +
-                          `Marca: ${marca}\n` +
-                          `Stock inicial: ${stock_inicial} ${unidad}\n` +
-                          `Lote inicial creado: #${loteId}`,
-                      )
-                      event.target.reset()
-                    })
-                  },
-                )
-              },
-            )
+                      // Confirmar transacción
+                      db.run("COMMIT", (err) => {
+                        if (err) {
+                          console.error("Error al confirmar transacción:", err.message)
+                          alert("Error al confirmar el registro.")
+                          return
+                        }
+
+                        console.log(`✅ Producto registrado exitosamente: ${nombre}`)
+                        alert(
+                          `✅ Producto registrado exitosamente.\n\n` +
+                            `Producto: ${nombre}\n` +
+                            `Código: ${codigo}\n` +
+                            `Marca: ${marca}\n` +
+                            `Stock inicial: ${stock_inicial} ${unidad}\n` +
+                            `Código de lote: ${codigoLote}`,
+                        )
+                        event.target.reset()
+                      })
+                    },
+                  )
+                },
+              )
+            })
           } else {
             // Si no tiene stock inicial, solo confirmar el producto
             db.run("COMMIT", (err) => {

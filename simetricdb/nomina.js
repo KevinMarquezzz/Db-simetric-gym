@@ -1,5 +1,4 @@
 const sqlite3 = require("sqlite3").verbose()
-
 const db = new sqlite3.Database("simetricdb.sqlite", (err) => {
   if (err) {
     console.error("Error al conectar con la base de datos:", err.message)
@@ -56,12 +55,10 @@ function mostrarEmpleadosDelMesActual() {
 // Función para inicializar selectores de año
 function inicializarSelectores() {
   const añoSelect = document.getElementById("año-nomina")
-  const añoUtilidadesSelect = document.getElementById("año-utilidades")
   const añoActual = new Date().getFullYear()
 
-  // Limpiar selectores
+  // Limpiar selector
   añoSelect.innerHTML = ""
-  añoUtilidadesSelect.innerHTML = ""
 
   // Llenar selector de años (desde 2020 hasta año actual + 1)
   for (let año = 2020; año <= añoActual + 1; año++) {
@@ -70,17 +67,12 @@ function inicializarSelectores() {
     option.textContent = año
     if (año === añoActual) option.selected = true
     añoSelect.appendChild(option)
-
-    // Clonar para utilidades
-    const optionUtilidades = option.cloneNode(true)
-    añoUtilidadesSelect.appendChild(optionUtilidades)
   }
 }
 
 // Función para cargar configuraciones desde la base de datos
 function cargarConfiguraciones() {
   const configuraciones = ["salario_minimo", "porcentaje_seguro_social", "porcentaje_lph", "porcentaje_paro_forzoso"]
-
   let configuracionesCargadas = 0
 
   configuraciones.forEach((config) => {
@@ -104,7 +96,6 @@ function cargarConfiguraciones() {
             break
         }
       }
-
       configuracionesCargadas++
       if (configuracionesCargadas === configuraciones.length) {
         console.log("Configuraciones cargadas:", CONFIGURACIONES)
@@ -122,13 +113,11 @@ function establecerPeriodoActual() {
   añoSeleccionado = fechaActual.getFullYear()
 }
 
-// Event listeners
+// Event listeners (SIN botones de prestaciones y utilidades)
 document.getElementById("cargar-nomina").addEventListener("click", cargarNomina)
 document.getElementById("nueva-nomina").addEventListener("click", crearNuevaNomina)
 document.getElementById("procesar-nomina").addEventListener("click", procesarNomina)
 document.getElementById("generar-reporte-nomina").addEventListener("click", generarReporteNomina)
-document.getElementById("calcular-prestaciones").addEventListener("click", abrirCalculoPrestaciones)
-document.getElementById("calcular-utilidades").addEventListener("click", abrirCalculoUtilidades)
 
 // Función para cargar nómina existente
 function cargarNomina() {
@@ -216,7 +205,7 @@ function cargarEmpleadosActivos() {
 
   const query = `
     SELECT * FROM empleados 
-    WHERE estatus = 'activo' 
+    WHERE estatus = 'activo'
     AND date(fecha_ingreso) <= date(?)
     ORDER BY nombre, apellido
   `
@@ -290,6 +279,13 @@ function generarNominaInicial() {
     const lph = sueldoProporcional * CONFIGURACIONES.LPH
     const paroForzoso = sueldoProporcional * CONFIGURACIONES.PARO_FORZOSO
     const totalDeducciones = seguroSocial + lph + paroForzoso
+    const sueldoNeto = sueldoProporcional - totalDeducciones
+
+    // Calcular utilidades (solo en diciembre)
+    let utilidades = 0
+    if (mesSeleccionado === 12) {
+      utilidades = sueldoNeto // 30 días del salario neto = el salario neto mensual
+    }
 
     return {
       empleado_id: empleado.id,
@@ -311,9 +307,9 @@ function generarNominaInicial() {
       ley_politica_habitacional: lph,
       paro_forzoso: paroForzoso,
       total_deducciones: totalDeducciones,
-      sueldo_neto: sueldoProporcional - totalDeducciones,
+      sueldo_neto: sueldoNeto,
       prestaciones_sociales: prestacionesSociales,
-      utilidades: 0,
+      utilidades: utilidades,
       vacaciones: vacaciones,
       fecha_pago: null,
       estatus: "pendiente",
@@ -328,6 +324,8 @@ function generarNominaInicial() {
 
 // Función para calcular antigüedad (CORREGIDA)
 function calcularAntiguedad(fechaIngreso) {
+  if (!fechaIngreso) return { años: 0, meses: 0, dias: 0 }
+
   const fechaInicio = new Date(fechaIngreso + "T00:00:00") // Asegurar formato correcto
   const fechaActual = new Date()
 
@@ -353,6 +351,8 @@ function calcularAntiguedad(fechaIngreso) {
 
 // Función para calcular prestaciones sociales (CORREGIDA)
 function calcularPrestacionesSociales(sueldoBase, años, meses) {
+  if (!sueldoBase || (!años && !meses)) return 0
+
   // Calcular años completos más la fracción de meses
   const añosCompletos = años + meses / 12
 
@@ -367,6 +367,8 @@ function calcularPrestacionesSociales(sueldoBase, años, meses) {
 
 // Función para calcular vacaciones (CORREGIDA)
 function calcularVacaciones(sueldoBase, años) {
+  if (!sueldoBase || !años) return 0
+
   let diasVacaciones = 15 // Mínimo 15 días
 
   // Días adicionales según antigüedad (Ley Orgánica del Trabajo de Venezuela)
@@ -399,14 +401,14 @@ function mostrarResumenNomina() {
   document.getElementById("resumen-nomina").style.display = "block"
 }
 
-// Función para renderizar nómina
+// Función para renderizar nómina (MEJORADA)
 function renderizarNomina() {
   const container = document.getElementById("nomina-container")
 
   if (nominaActual.length === 0) {
     container.innerHTML = `
       <div class="no-empleados">
-        <h3>No hay empleados en la nómina</h3>
+        <h3>📭 No hay empleados en la nómina</h3>
         <p>Use 'Nueva Nómina' para generar la nómina del período.</p>
       </div>
     `
@@ -415,20 +417,23 @@ function renderizarNomina() {
 
   const nominaHTML = nominaActual
     .map((nomina) => {
+      // Formatear nombre completo correctamente
+      const nombreCompleto = `${(nomina.nombre || "").trim()} ${(nomina.apellido || "").trim()}`.trim()
+
       return `
       <div class="nomina-empleado">
         <div class="empleado-header">
           <div class="empleado-info">
-            <h4>${nomina.nombre} ${nomina.apellido}</h4>
+            <h4>${nombreCompleto || "Nombre no disponible"}</h4>
             <div class="empleado-cargo">${formatearCargo(nomina.cargo)}</div>
           </div>
-          <span class="nomina-status status-${nomina.estatus}">${nomina.estatus.toUpperCase()}</span>
+          <span class="nomina-status status-${nomina.estatus}">${(nomina.estatus || "pendiente").toUpperCase()}</span>
         </div>
         
         <div class="nomina-detalles">
           <div class="detalle-item">
             <div class="detalle-label">Días Trabajados</div>
-            <div class="detalle-valor">${nomina.dias_trabajados}</div>
+            <div class="detalle-valor">${nomina.dias_trabajados || 0}</div>
           </div>
           <div class="detalle-item">
             <div class="detalle-label">Sueldo Base</div>
@@ -450,6 +455,16 @@ function renderizarNomina() {
             <div class="detalle-label">Prestaciones</div>
             <div class="detalle-valor">$${(nomina.prestaciones_sociales || 0).toFixed(2)}</div>
           </div>
+          ${
+            mesSeleccionado === 12
+              ? `
+          <div class="detalle-item utilidades">
+            <div class="detalle-label">🎁 Utilidades</div>
+            <div class="detalle-valor">$${(nomina.utilidades || 0).toFixed(2)}</div>
+          </div>
+          `
+              : ""
+          }
         </div>
         
         <div class="nomina-acciones">
@@ -471,7 +486,6 @@ function renderizarNomina() {
 // Event listeners para acciones de nómina
 document.addEventListener("click", (event) => {
   const empleadoId = event.target.dataset.empleadoId
-
   if (event.target.classList.contains("editar-nomina")) {
     abrirEditorNomina(empleadoId)
   } else if (event.target.classList.contains("ver-detalle-nomina")) {
@@ -479,7 +493,7 @@ document.addEventListener("click", (event) => {
   }
 })
 
-// Función para abrir editor de nómina
+// Función para abrir editor de nómina (MEJORADA)
 function abrirEditorNomina(empleadoId, soloLectura = false) {
   const nomina = nominaActual.find((n) => n.empleado_id == empleadoId)
   if (!nomina) {
@@ -489,9 +503,12 @@ function abrirEditorNomina(empleadoId, soloLectura = false) {
 
   empleadoNominaSeleccionado = empleadoId
 
+  // Formatear nombre completo correctamente
+  const nombreCompleto = `${(nomina.nombre || "").trim()} ${(nomina.apellido || "").trim()}`.trim()
+
   // Llenar campos del popup
-  document.getElementById("nomina-empleado").value = `${nomina.nombre} ${nomina.apellido}`
-  document.getElementById("nomina-periodo").value = nomina.periodo
+  document.getElementById("nomina-empleado").value = nombreCompleto || "Nombre no disponible"
+  document.getElementById("nomina-periodo").value = nomina.periodo || ""
   document.getElementById("dias-trabajados").value = nomina.dias_trabajados || CONFIGURACIONES.DIAS_MES
   document.getElementById("sueldo-base").value = nomina.sueldo_base || 0
   document.getElementById("dias-feriados").value = nomina.dias_feriados || 0
@@ -504,7 +521,6 @@ function abrirEditorNomina(empleadoId, soloLectura = false) {
 
   // Configurar modo de solo lectura si es necesario
   const campos = ["dias-trabajados", "dias-feriados", "bonos", "comisiones", "observaciones"]
-
   if (soloLectura) {
     campos.forEach((campoId) => {
       const campo = document.getElementById(campoId)
@@ -530,7 +546,7 @@ document.getElementById("dias-feriados").addEventListener("input", calcularNomin
 document.getElementById("bonos").addEventListener("input", calcularNomina)
 document.getElementById("comisiones").addEventListener("input", calcularNomina)
 
-// Función para calcular nómina en tiempo real (CORREGIDA)
+// Función para calcular nómina en tiempo real (CORREGIDA CON UTILIDADES)
 function calcularNomina() {
   const diasTrabajados = Number.parseInt(document.getElementById("dias-trabajados").value) || 0
   const sueldoBase = Number.parseFloat(document.getElementById("sueldo-base").value) || 0
@@ -574,6 +590,12 @@ function calcularNomina() {
   const prestaciones = nomina ? nomina.prestaciones_sociales || 0 : 0
   const vacaciones = nomina ? nomina.vacaciones || 0 : 0
 
+  // Calcular utilidades (solo en diciembre)
+  let utilidades = 0
+  if (mesSeleccionado === 12) {
+    utilidades = sueldoNeto // 30 días del salario neto = el salario neto mensual
+  }
+
   // Actualizar campos calculados
   document.getElementById("sueldo-proporcional").textContent = `$${sueldoProporcional.toFixed(2)}`
   document.getElementById("monto-dias-feriados-calc").textContent = `$${montoDiasFeriados.toFixed(2)}`
@@ -585,6 +607,19 @@ function calcularNomina() {
   document.getElementById("sueldo-neto-calc").textContent = `$${sueldoNeto.toFixed(2)}`
   document.getElementById("prestaciones-calc").textContent = `$${prestaciones.toFixed(2)}`
   document.getElementById("vacaciones-calc").textContent = `$${vacaciones.toFixed(2)}`
+  document.getElementById("utilidades-calc").textContent = `$${utilidades.toFixed(2)}`
+
+  // Cambiar color del campo de utilidades según el mes
+  const utilidadesElement = document.getElementById("utilidades-calc")
+  const utilidadesItem = utilidadesElement.closest(".calculo-item")
+
+  if (mesSeleccionado === 12) {
+    utilidadesItem.classList.add("utilidades-activas")
+    utilidadesItem.classList.remove("utilidades-inactivas")
+  } else {
+    utilidadesItem.classList.add("utilidades-inactivas")
+    utilidadesItem.classList.remove("utilidades-activas")
+  }
 }
 
 // Event listener para formulario de nómina
@@ -593,7 +628,7 @@ document.getElementById("form-nomina").addEventListener("submit", (e) => {
   guardarNomina()
 })
 
-// Función para guardar nómina (CORREGIDA)
+// Función para guardar nómina (CORREGIDA CON UTILIDADES)
 function guardarNomina() {
   const diasTrabajados = Number.parseInt(document.getElementById("dias-trabajados").value) || 0
   const sueldoBase = Number.parseFloat(document.getElementById("sueldo-base").value) || 0
@@ -636,6 +671,12 @@ function guardarNomina() {
   const totalDeducciones = seguroSocial + lph + paroForzoso
   const sueldoNeto = totalDevengado - totalDeducciones
 
+  // Calcular utilidades (solo en diciembre)
+  let utilidades = 0
+  if (mesSeleccionado === 12) {
+    utilidades = sueldoNeto
+  }
+
   // Actualizar nómina en memoria
   const nominaIndex = nominaActual.findIndex((n) => n.empleado_id == empleadoNominaSeleccionado)
   if (nominaIndex !== -1) {
@@ -652,6 +693,7 @@ function guardarNomina() {
       paro_forzoso: paroForzoso,
       total_deducciones: totalDeducciones,
       sueldo_neto: sueldoNeto,
+      utilidades: utilidades,
       observaciones: observaciones,
     }
 
@@ -782,6 +824,7 @@ function generarReporteNomina() {
   const totalDeducciones = nominaActual.reduce((sum, nomina) => sum + (nomina.total_deducciones || 0), 0)
   const totalNeto = nominaActual.reduce((sum, nomina) => sum + (nomina.sueldo_neto || 0), 0)
   const totalPrestaciones = nominaActual.reduce((sum, nomina) => sum + (nomina.prestaciones_sociales || 0), 0)
+  const totalUtilidades = nominaActual.reduce((sum, nomina) => sum + (nomina.utilidades || 0), 0)
 
   const contenidoReporte = `
     <!DOCTYPE html>
@@ -875,6 +918,13 @@ function generarReporteNomina() {
           margin-bottom: 20px;
           font-size: 12px;
         }
+        .utilidades-info {
+          background-color: #fff3cd;
+          padding: 15px;
+          border-radius: 8px;
+          margin-bottom: 20px;
+          border-left: 4px solid #ffc107;
+        }
         .footer {
           text-align: center;
           margin-top: 40px;
@@ -890,16 +940,27 @@ function generarReporteNomina() {
         <div class="logo">🏋️ SIMETRIC GYM C.A.</div>
         <div class="subtitle">Reporte de Nómina - ${obtenerNombreMes(mesSeleccionado)} ${añoSeleccionado}</div>
       </div>
-
+      
       <div class="configuraciones">
         <h4>⚙️ Configuraciones Aplicadas</h4>
-        <p><strong>Seguro Social:</strong> ${(CONFIGURACIONES.SEGURO_SOCIAL * 100).toFixed(1)}% | 
-           <strong>LPH:</strong> ${(CONFIGURACIONES.LPH * 100).toFixed(1)}% | 
-           <strong>Paro Forzoso:</strong> ${(CONFIGURACIONES.PARO_FORZOSO * 100).toFixed(1)}% | 
+        <p><strong>Seguro Social:</strong> ${(CONFIGURACIONES.SEGURO_SOCIAL * 100).toFixed(1)}% |
+           <strong>LPH:</strong> ${(CONFIGURACIONES.LPH * 100).toFixed(1)}% |
+           <strong>Paro Forzoso:</strong> ${(CONFIGURACIONES.PARO_FORZOSO * 100).toFixed(1)}% |
            <strong>Salario Mínimo:</strong> $${CONFIGURACIONES.SALARIO_MINIMO.toFixed(2)} USD |
            <strong>Recargo Feriados:</strong> ${(CONFIGURACIONES.RECARGO_FERIADOS * 100).toFixed(0)}%</p>
       </div>
 
+      ${
+        mesSeleccionado === 12
+          ? `
+      <div class="utilidades-info">
+        <h4 style="color: #856404; margin-bottom: 10px;">🎁 Información de Utilidades</h4>
+        <p style="margin: 0;"><strong>Las utilidades corresponden a 30 días del salario neto y se pagan únicamente en diciembre.</strong></p>
+      </div>
+      `
+          : ""
+      }
+      
       <div class="resumen">
         <h3>📊 Resumen General</h3>
         <div class="resumen-grid">
@@ -923,9 +984,19 @@ function generarReporteNomina() {
             <div class="resumen-numero">$${totalPrestaciones.toFixed(2)}</div>
             <div class="resumen-label">Total Prestaciones</div>
           </div>
+          ${
+            mesSeleccionado === 12
+              ? `
+          <div class="resumen-item">
+            <div class="resumen-numero">$${totalUtilidades.toFixed(2)}</div>
+            <div class="resumen-label">Total Utilidades</div>
+          </div>
+          `
+              : ""
+          }
         </div>
       </div>
-
+      
       <table class="nomina-table">
         <thead>
           <tr>
@@ -943,16 +1014,18 @@ function generarReporteNomina() {
             <th>Tot. Ded.</th>
             <th>Neto</th>
             <th>Prestaciones</th>
+            ${mesSeleccionado === 12 ? "<th>Utilidades</th>" : ""}
           </tr>
         </thead>
         <tbody>
           ${nominaActual
-            .map(
-              (nomina) => `
+            .map((nomina) => {
+              const nombreCompleto = `${(nomina.nombre || "").trim()} ${(nomina.apellido || "").trim()}`.trim()
+              return `
           <tr>
-            <td>${nomina.nombre} ${nomina.apellido}</td>
+            <td>${nombreCompleto || "Nombre no disponible"}</td>
             <td>${formatearCargo(nomina.cargo)}</td>
-            <td>${nomina.dias_trabajados}</td>
+            <td>${nomina.dias_trabajados || 0}</td>
             <td>$${(nomina.sueldo_base || 0).toFixed(2)}</td>
             <td>$${(nomina.monto_dias_feriados || 0).toFixed(2)}</td>
             <td>$${(nomina.bonos || 0).toFixed(2)}</td>
@@ -964,12 +1037,13 @@ function generarReporteNomina() {
             <td>$${(nomina.total_deducciones || 0).toFixed(2)}</td>
             <td>$${(nomina.sueldo_neto || 0).toFixed(2)}</td>
             <td>$${(nomina.prestaciones_sociales || 0).toFixed(2)}</td>
+            ${mesSeleccionado === 12 ? `<td>$${(nomina.utilidades || 0).toFixed(2)}</td>` : ""}
           </tr>
-          `,
-            )
+          `
+            })
             .join("")}
           <tr class="total-row">
-            <td colspan="7"><strong>TOTALES</strong></td>
+            <td colspan="${mesSeleccionado === 12 ? "7" : "6"}"><strong>TOTALES</strong></td>
             <td><strong>$${totalDevengado.toFixed(2)}</strong></td>
             <td><strong>$${nominaActual.reduce((sum, n) => sum + (n.seguro_social || 0), 0).toFixed(2)}</strong></td>
             <td><strong>$${nominaActual.reduce((sum, n) => sum + (n.ley_politica_habitacional || 0), 0).toFixed(2)}</strong></td>
@@ -977,10 +1051,11 @@ function generarReporteNomina() {
             <td><strong>$${totalDeducciones.toFixed(2)}</strong></td>
             <td><strong>$${totalNeto.toFixed(2)}</strong></td>
             <td><strong>$${totalPrestaciones.toFixed(2)}</strong></td>
+            ${mesSeleccionado === 12 ? `<td><strong>$${totalUtilidades.toFixed(2)}</strong></td>` : ""}
           </tr>
         </tbody>
       </table>
-
+      
       <div class="footer">
         <p><strong>SIMETRIC GYM C.A.</strong></p>
         <p>Reporte generado el ${new Date().toLocaleDateString("es-ES")} a las ${new Date().toLocaleTimeString("es-ES")}</p>
@@ -1001,269 +1076,10 @@ function generarReporteNomina() {
 
   ventanaReporte.document.write(contenidoReporte)
   ventanaReporte.document.close()
-
   setTimeout(() => {
     ventanaReporte.print()
   }, 500)
 }
-
-// Función para abrir cálculo de prestaciones (CORREGIDA)
-function abrirCalculoPrestaciones() {
-  const añoActual = new Date().getFullYear()
-  document.getElementById("año-prestaciones").textContent = añoActual
-  document.getElementById("salario-minimo-prestaciones").textContent = CONFIGURACIONES.SALARIO_MINIMO.toFixed(2)
-
-  // Cargar empleados activos para prestaciones
-  db.all("SELECT * FROM empleados WHERE estatus = 'activo' ORDER BY nombre, apellido", [], (err, empleados) => {
-    if (err) {
-      console.error("Error cargando empleados para prestaciones:", err.message)
-      alert("Error al cargar empleados para prestaciones.")
-      return
-    }
-
-    if (empleados.length === 0) {
-      alert("No hay empleados activos para calcular prestaciones.")
-      return
-    }
-
-    const prestacionesHTML = empleados
-      .map((empleado) => {
-        const antiguedad = calcularAntiguedad(empleado.fecha_ingreso)
-        const prestaciones = calcularPrestacionesSociales(empleado.sueldo_base, antiguedad.años, antiguedad.meses)
-
-        // Calcular componentes por separado para mostrar detalle
-        const añosCompletos = antiguedad.años + antiguedad.meses / 12
-        const prestacionesBase = (empleado.sueldo_base / CONFIGURACIONES.DIAS_MES) * 30 * añosCompletos
-        const intereses = prestacionesBase * CONFIGURACIONES.TASA_INTERES_PRESTACIONES * añosCompletos
-
-        return `
-        <div class="prestacion-empleado">
-          <div class="empleado-prestacion-header">
-            <span class="empleado-nombre">${empleado.nombre} ${empleado.apellido}</span>
-            <span class="prestacion-monto">$${prestaciones.toFixed(2)}</span>
-          </div>
-          <div class="prestacion-detalles">
-            <div><strong>Cargo:</strong> ${formatearCargo(empleado.cargo)}</div>
-            <div><strong>Sueldo:</strong> $${empleado.sueldo_base.toFixed(2)}</div>
-            <div><strong>Fecha Ingreso:</strong> ${new Date(empleado.fecha_ingreso).toLocaleDateString("es-ES")}</div>
-            <div><strong>Antigüedad:</strong> ${antiguedad.años} años, ${antiguedad.meses} meses</div>
-            <div><strong>Años completos:</strong> ${añosCompletos.toFixed(2)}</div>
-            <div><strong>Base (30 días/año):</strong> $${prestacionesBase.toFixed(2)}</div>
-            <div><strong>Intereses (12%):</strong> $${intereses.toFixed(2)}</div>
-            <div><strong>Total:</strong> $${prestaciones.toFixed(2)}</div>
-          </div>
-        </div>
-      `
-      })
-      .join("")
-
-    document.getElementById("prestaciones-container").innerHTML = prestacionesHTML
-    document.getElementById("popup-prestaciones").classList.remove("oculto")
-  })
-}
-
-// Función para abrir cálculo de utilidades (CORREGIDA)
-function abrirCalculoUtilidades() {
-  document.getElementById("popup-utilidades").classList.remove("oculto")
-}
-
-// Event listener para calcular utilidades (CORREGIDO)
-document.getElementById("calcular-utilidades-btn").addEventListener("click", () => {
-  const año = Number.parseInt(document.getElementById("año-utilidades").value)
-  const beneficioEmpresa = Number.parseFloat(document.getElementById("beneficio-empresa").value) || 0
-
-  if (!año || año < 2020 || año > new Date().getFullYear() + 1) {
-    alert("Por favor seleccione un año válido.")
-    return
-  }
-
-  if (beneficioEmpresa <= 0) {
-    alert("Debe ingresar el beneficio de la empresa para calcular utilidades.")
-    document.getElementById("beneficio-empresa").focus()
-    return
-  }
-
-  // Cargar empleados activos del año seleccionado
-  db.all("SELECT * FROM empleados WHERE estatus = 'activo' ORDER BY nombre, apellido", [], (err, empleados) => {
-    if (err) {
-      console.error("Error cargando empleados para utilidades:", err.message)
-      alert("Error al cargar empleados para utilidades.")
-      return
-    }
-
-    if (empleados.length === 0) {
-      alert("No hay empleados activos para calcular utilidades.")
-      return
-    }
-
-    // Calcular suma total de sueldos para distribución proporcional
-    const sumaSueldos = empleados.reduce((sum, emp) => sum + (emp.sueldo_base || 0), 0)
-
-    if (sumaSueldos <= 0) {
-      alert("Error: La suma de sueldos es 0. Verifique los datos de los empleados.")
-      return
-    }
-
-    const utilidadesHTML = empleados
-      .map((empleado) => {
-        // Mínimo 15 días de salario
-        const minimoUtilidades = (empleado.sueldo_base / 30) * 15
-
-        // Distribución proporcional del beneficio
-        const proporcion = empleado.sueldo_base / sumaSueldos
-        const utilidadProporcional = beneficioEmpresa * proporcion
-
-        // Total de utilidades
-        const totalUtilidades = minimoUtilidades + utilidadProporcional
-
-        // Máximo 4 meses de salario
-        const maximoUtilidades = empleado.sueldo_base * 4
-        const utilidadFinal = Math.min(totalUtilidades, maximoUtilidades)
-
-        return `
-        <div class="utilidad-empleado">
-          <div class="empleado-prestacion-header">
-            <span class="empleado-nombre">${empleado.nombre} ${empleado.apellido}</span>
-            <span class="utilidad-monto">$${utilidadFinal.toFixed(2)}</span>
-          </div>
-          <div class="utilidad-detalles">
-            <div><strong>Cargo:</strong> ${formatearCargo(empleado.cargo)}</div>
-            <div><strong>Sueldo base:</strong> $${empleado.sueldo_base.toFixed(2)}</div>
-            <div><strong>Proporción:</strong> ${(proporcion * 100).toFixed(2)}%</div>
-            <div><strong>Mínimo (15 días):</strong> $${minimoUtilidades.toFixed(2)}</div>
-            <div><strong>Proporcional:</strong> $${utilidadProporcional.toFixed(2)}</div>
-            <div><strong>Total calculado:</strong> $${totalUtilidades.toFixed(2)}</div>
-            <div><strong>Máximo (4 meses):</strong> $${maximoUtilidades.toFixed(2)}</div>
-            <div><strong>Utilidad final:</strong> $${utilidadFinal.toFixed(2)}</div>
-          </div>
-        </div>
-      `
-      })
-      .join("")
-
-    document.getElementById("utilidades-container").innerHTML = utilidadesHTML
-    document.getElementById("procesar-utilidades").style.display = "inline-block"
-  })
-})
-
-// Event listener corregido para procesar prestaciones
-document.getElementById("procesar-prestaciones").addEventListener("click", () => {
-  if (
-    !confirm(
-      "¿Está seguro de procesar las prestaciones sociales? Esta acción creará registros de prestaciones para todos los empleados.",
-    )
-  ) {
-    return
-  }
-
-  // Obtener empleados del contenedor de prestaciones
-  const prestacionesItems = document.querySelectorAll(".prestacion-empleado")
-  if (prestacionesItems.length === 0) {
-    alert("No hay empleados para procesar prestaciones.")
-    return
-  }
-
-  let procesados = 0
-  let errores = 0
-  const total = prestacionesItems.length
-
-  prestacionesItems.forEach((item) => {
-    const nombreCompleto = item.querySelector(".empleado-nombre").textContent
-    const montoTotal = Number.parseFloat(item.querySelector(".prestacion-monto").textContent.replace("$", ""))
-    const año = Number.parseInt(document.getElementById("año-prestaciones").textContent)
-
-    // Buscar empleado por nombre
-    db.get(
-      "SELECT id, sueldo_base, fecha_ingreso FROM empleados WHERE (nombre || ' ' || apellido) = ?",
-      [nombreCompleto],
-      (err, empleado) => {
-        if (err) {
-          console.error("Error buscando empleado:", err.message)
-          errores++
-        } else if (empleado) {
-          // Calcular componentes según la estructura de la tabla
-          const antiguedad = calcularAntiguedad(empleado.fecha_ingreso)
-          const añosCompletos = antiguedad.años + antiguedad.meses / 12
-          const diasAntiguedad = Math.floor(añosCompletos * 365)
-          const prestacionesBase = (empleado.sueldo_base / CONFIGURACIONES.DIAS_MES) * 30 * añosCompletos
-          const intereses = prestacionesBase * CONFIGURACIONES.TASA_INTERES_PRESTACIONES * añosCompletos
-
-          const query = `
-          INSERT OR REPLACE INTO prestaciones_sociales 
-          (empleado_id, año, sueldo_promedio, dias_antiguedad, monto_prestaciones, intereses_prestaciones, total_acumulado, fecha_calculo)
-          VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-        `
-
-          db.run(
-            query,
-            [
-              empleado.id,
-              año,
-              empleado.sueldo_base,
-              diasAntiguedad,
-              prestacionesBase,
-              intereses,
-              montoTotal,
-              new Date().toISOString().split("T")[0],
-            ],
-            (err) => {
-              if (err) {
-                console.error("Error procesando prestaciones:", err.message)
-                errores++
-              } else {
-                procesados++
-              }
-
-              // Verificar si se completó el procesamiento
-              if (procesados + errores === total) {
-                if (errores > 0) {
-                  alert(
-                    `⚠️ Prestaciones procesadas con ${errores} errores. ${procesados} empleados procesados correctamente.`,
-                  )
-                } else {
-                  alert(`✅ Prestaciones sociales procesadas para ${procesados} empleados.`)
-                }
-                document.getElementById("popup-prestaciones").classList.add("oculto")
-              }
-            },
-          )
-        } else {
-          console.error("Empleado no encontrado:", nombreCompleto)
-          errores++
-          if (procesados + errores === total) {
-            alert(`⚠️ Prestaciones procesadas con ${errores} errores. ${procesados} empleados procesados correctamente.`)
-            document.getElementById("popup-prestaciones").classList.add("oculto")
-          }
-        }
-      },
-    )
-  })
-})
-
-document.getElementById("procesar-utilidades").addEventListener("click", () => {
-  alert("⚠️ Funcionalidad de procesamiento de utilidades en desarrollo.")
-})
-
-// Event listeners para cerrar popups de prestaciones y utilidades
-document.getElementById("cerrar-popup-prestaciones").addEventListener("click", () => {
-  document.getElementById("popup-prestaciones").classList.add("oculto")
-})
-
-document.getElementById("cancelar-prestaciones").addEventListener("click", () => {
-  document.getElementById("popup-prestaciones").classList.add("oculto")
-})
-
-document.getElementById("cerrar-popup-utilidades").addEventListener("click", () => {
-  document.getElementById("popup-utilidades").classList.add("oculto")
-  document.getElementById("procesar-utilidades").style.display = "none"
-  document.getElementById("utilidades-container").innerHTML = ""
-})
-
-document.getElementById("cancelar-utilidades").addEventListener("click", () => {
-  document.getElementById("popup-utilidades").classList.add("oculto")
-  document.getElementById("procesar-utilidades").style.display = "none"
-  document.getElementById("utilidades-container").innerHTML = ""
-})
 
 // Función para obtener nombre del mes
 function obtenerNombreMes(numeroMes) {
@@ -1284,7 +1100,7 @@ function obtenerNombreMes(numeroMes) {
   return meses[numeroMes - 1] || "Mes desconocido"
 }
 
-// Función para formatear cargo
+// Función para formatear cargo (MEJORADA)
 function formatearCargo(cargo) {
   const cargos = {
     administrador: "Administrador",
@@ -1295,5 +1111,5 @@ function formatearCargo(cargo) {
     seguridad: "Seguridad",
     otro: "Otro",
   }
-  return cargos[cargo] || cargo
+  return cargos[cargo] || cargo || "N/A"
 }

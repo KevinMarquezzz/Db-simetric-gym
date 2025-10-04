@@ -708,4 +708,13 @@
       max-width: 250px;
     }
   }
-  
+  #observaciones{
+    padding: 12px;
+    border: 2px solid #880808;
+    border-radius: 8px;
+    background-color: #1a1a1a;
+    color: #f2f3d9;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+    width: 100%;
+  }

@@ -38,7 +38,7 @@ header .img {
 .back_btn {
   position: absolute;
   top: 2%;
-   left: 3%;
+  left: 3%;
 }
 
 .back_btn button {
@@ -523,7 +523,7 @@ textarea {
   padding-bottom: 0.5rem;
 }
 
-/* Header del historial con botón de imprimir */
+/* Header del historial con botón de imprimir y búsqueda */
 .historial-header {
   display: flex;
   justify-content: space-between;
@@ -531,11 +531,42 @@ textarea {
   margin-bottom: 1rem;
   padding-bottom: 0.5rem;
   border-bottom: 1px solid #880808;
+  flex-wrap: wrap;
+  gap: 1rem;
 }
 
 .historial-header h3 {
   margin: 0;
   color: #f2f3d9;
+}
+
+.header-actions {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.buscar-lote {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.btn-buscar {
+  background-color: #2196f3;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 0.3rem 0.6rem;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: all 0.3s ease;
+}
+
+.btn-buscar:hover {
+  background-color: #1976d2;
+  transform: scale(1.05);
 }
 
 .btn-exportar {
@@ -610,7 +641,7 @@ textarea {
   border-radius: 1px;
 }
 
-/* Items de lotes */
+/* Items de lotes con códigos destacados */
 .lote-item {
   background-color: #1a1a1a;
   padding: 1rem;
@@ -657,6 +688,19 @@ textarea {
   font-weight: bold;
   color: #f2f3d9;
   font-size: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.codigo-lote {
+  background-color: #880808;
+  color: white;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-family: monospace;
+  font-weight: bold;
+  font-size: 0.9rem;
 }
 
 .lote-estado {
@@ -756,6 +800,16 @@ textarea {
   }
   .historial-header h3 {
     text-align: center;
+  }
+  .header-actions {
+    flex-direction: column;
+    width: 100%;
+  }
+  .buscar-lote {
+    width: 100%;
+  }
+  .buscar-lote input {
+    flex: 1;
   }
 }
 
