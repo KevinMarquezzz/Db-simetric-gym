@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gestión de Ventas</title>
+  <link rel="stylesheet" href="modulo_ventas.css">
+</head>
+<body>
+    <header>
+        <h1 id="mainttl">SIMETRIC GYM</h1>
+        <div class="img">
+          <img src="../../../assets/logo2_simetricG.png" height="60px" width="60px" alt="">
+        </div>
+    </header>
+    <a href="../menu_inventario.html" class="back_btn">
+      <button><img class="icon" src="../../../assets/arrow_back_left_icon.png" alt="" height="40px" width="40px"></button>
+    </a>    
+    <section id="new-product">
+        <div class="top">
+        </div>
+                
+        <section id="sales-section">
+            <div class="section-header">
+              <h2>🛒 Gestión de Ventas</h2>
+              <p class="subtitle">Sistema PEPS - Primero en Entrar, Primero en Salir</p>
+            </div>
+                                
+            <div class="filters">
+              <input type="text" id="search-code" placeholder="Buscar por código">
+              <input type="text" id="search-name" placeholder="Buscar por nombre">
+              <select id="filter-stock">
+                <option value="todos">Todos los productos</option>
+                <option value="disponibles">Solo con stock</option>
+                <option value="agotados">Sin stock</option>
+              </select>
+            </div>
+                                
+            <!-- Lista de productos disponibles -->
+            <div class="product-list">
+              <div id="lista-productos">
+                <!-- Productos se insertan aquí dinámicamente con JS -->
+              </div>
+            </div>
+                                
+            <!-- Modal para cantidad -->
+            <div id="cantidad-modal" class="modal hidden">
+                <div class="modal-content">
+                  <span class="cerrar-modal" id="cerrar-cantidad-modal">&times;</span>
+                  <h3>🛒 Agregar al Carrito</h3>
+                  <div class="producto-modal-info">
+                    <p><strong>Producto:</strong> <span id="modal-producto-nombre"></span></p>
+                    <p><strong>Stock disponible:</strong> <span id="modal-stock-disponible"></span> unidades</p>
+                    <p><strong>Precio:</strong> $<span id="modal-precio"></span></p>
+                  </div>
+                  <div class="cantidad-input-group">
+                    <label for="cantidad-input">Cantidad a vender:</label>
+                    <input type="number" id="cantidad-input" min="1" max="1" value="1">
+                  </div>
+                  <div class="modal-actions">
+                    <button id="btn-cancelar-cantidad">❌ Cancelar</button>
+                    <button id="btn-confirmar-cantidad">✅ Agregar</button>
+                  </div>
+                </div>
+            </div>
+
+            <!-- Modal para datos de venta -->
+            <div id="modal-datos-venta" class="modal hidden">
+                <div class="modal-content modal-venta">
+                  <span class="cerrar-modal" id="cerrar-datos-venta-modal">&times;</span>
+                  <h3>💳 Datos de la Venta</h3>
+                  
+                  <div class="resumen-venta">
+                    <h4>📊 Resumen de la Compra</h4>
+                    <div class="resumen-item">
+                      <span>Total USD:</span>
+                      <span>$<span id="modal-total-usd">0.00</span></span>
+                    </div>
+                    <div class="resumen-item">
+                      <span>Total Bs:</span>
+                      <span><span id="modal-total-bs">0.00</span> Bs</span>
+                    </div>
+                    <div class="resumen-item">
+                      <span>Tasa del día:</span>
+                      <span><span id="modal-tasa">0.00</span> Bs/USD</span>
+                    </div>
+                  </div>
+
+                  <form id="form-datos-venta">
+                    <div class="form-section">
+                      <h4>👤 Datos del Cliente</h4>
+                      <div class="form-row">
+                        <div class="form-group">
+                          <label for="cliente-nombre">Nombre completo *</label>
+                          <input type="text" id="cliente-nombre" required>
+                        </div>
+                        <div class="form-group">
+                          <label for="cliente-cedula">Cédula *</label>
+                          <input type="text" id="cliente-cedula" placeholder="Ej: 12345678" maxlength="8" required>
+                          <small>Solo números, entre 7 y 8 dígitos</small>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div class="form-section">
+                      <h4>💳 Método de Pago</h4>
+                      <div class="form-group">
+                        <label for="metodo-pago">Seleccione el método de pago *</label>
+                        <select id="metodo-pago" required>
+                          <option value="">-- Seleccionar método --</option>
+                          <option value="efectivo">💵 Efectivo</option>
+                          <option value="tarjeta">💳 Tarjeta de Débito/Crédito</option>
+                          <option value="pago_movil">📱 Pago Móvil</option>
+                          <option value="transferencia">🏦 Transferencia Bancaria</option>
+                        </select>
+                      </div>
+                      
+                      <div id="referencia-container" class="form-group" style="display: none;">
+                        <label for="referencia-pago">Número de referencia *</label>
+                        <input type="text" id="referencia-pago" placeholder="Ej: 123456789012" maxlength="12">
+                        <small>Solo números, entre 6 y 12 dígitos</small>
+                      </div>
+                    </div>
+
+                    <div class="modal-actions">
+                      <button type="button" id="btn-cancelar-venta">❌ Cancelar</button>
+                      <button type="button" id="btn-confirmar-venta-final">✅ Confirmar Venta</button>
+                    </div>
+                  </form>
+                </div>
+            </div>
+            
+            <!-- Carrito de compra -->
+            <div class="cart-container">
+              <h3>🛒 Carrito de Venta</h3>
+              <div class="cart-items" id="venta-carrito-container">
+                <p class="cart-empty">El carrito está vacío</p>
+              </div>
+                            
+              <div class="cart-summary">
+                <div class="total-line">
+                  <span><strong>Total USD:</strong></span>
+                  <span id="total-usd">$0.00</span>
+                </div>
+                <div class="total-line">
+                  <span><strong>Total Bs:</strong></span>
+                  <span id="total-bs">0.00 Bs</span>
+                </div>
+              </div>
+              <div id="tasa-container">
+                <label for="tasa-cambio">💱 Tasa del día (Bs/USD):</label>
+                <input type="number" id="tasa-cambio" placeholder="0.00" step="0.01" min="0" required disabled>
+              </div>
+                            
+              <div class="cart-actions">
+                <button class="btn-confirmar-venta" id="btn-confirmar-venta">
+                  <span class="btn-icon">💳</span>
+                  Procesar Venta
+                </button>
+                <button class="btn-limpiar-carrito" id="btn-limpiar-carrito">
+                  <span class="btn-icon">🗑️</span>
+                  Limpiar Carrito
+                </button>
+              </div>
+                                          
+              <button id="btn-historial">📊 Ver Historial de Ventas</button>
+              <div class="historial-actions hidden" id="historial-actions">
+                <button id="btn-exportar-pdf">📄 Exportar PDF</button>
+              </div>
+              <div id="historial-ventas" class="historial-container hidden"></div>
+            </div>
+        </section>
+    </section>
+                      
+    <script src="moduloVentas.js"></script>
+</body>
+</html>

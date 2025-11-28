@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pagos de Nómina - SIMETRIC GYM</title>
+    <link rel="stylesheet" href="pagos-nomina.css">
+</head>
+<body>
+    <header>
+        <h1 id="mainttl">SIMETRIC GYM</h1>
+        <div class="img">                        
+            <img src="../../../assets/logo2_simetricG.png" height="60px" width="60px" alt="">
+        </div>
+    </header>
+
+    <a href="../menu_personal.html" class="back_btn">
+        <button><img class="icon" src="../../../assets/arrow_back_left_icon.png" alt="" height="40px" width="40px"></button>
+    </a>
+
+    <section id="pagos-section">
+        <div class="container">
+            <div class="header-section">
+                <h2>💳 Pagos de Nómina</h2>
+                
+                <div class="filtros-pagos">
+                    <div class="filtro-grupo">
+                        <label for="mes-pago">📅 Mes:</label>
+                        <select id="mes-pago">
+                            <option value="1">Enero</option>
+                            <option value="2">Febrero</option>
+                            <option value="3">Marzo</option>
+                            <option value="4">Abril</option>
+                            <option value="5">Mayo</option>
+                            <option value="6">Junio</option>
+                            <option value="7">Julio</option>
+                            <option value="8">Agosto</option>
+                            <option value="9">Septiembre</option>
+                            <option value="10">Octubre</option>
+                            <option value="11">Noviembre</option>
+                            <option value="12">Diciembre</option>
+                        </select>
+                    </div>
+                    
+                    <div class="filtro-grupo">
+                        <label for="año-pago">📆 Año:</label>
+                        <select id="año-pago">
+                            <!-- Se llenará dinámicamente -->
+                        </select>
+                    </div>
+                    
+                    <div class="filtro-grupo">
+                        <label for="estatus-pago">📊 Estatus:</label>
+                        <select id="estatus-pago">
+                            <option value="todos">Todos</option>
+                            <option value="procesada">Procesadas</option>
+                            <option value="pagada">Pagadas</option>
+                        </select>
+                    </div>
+                    
+                    <button id="cargar-nominas-pago" class="btn-primary">🔄 Cargar Nóminas</button>
+                </div>
+            </div>
+
+            <!-- Resumen de pagos -->
+            <div class="resumen-pagos" id="resumen-pagos" style="display: none;">
+                <h3>📊 Resumen de Pagos</h3>
+                <div class="resumen-grid">
+                    <div class="resumen-card">
+                        <div class="resumen-numero" id="total-empleados-pago">0</div>
+                        <div class="resumen-label">Empleados</div>
+                    </div>
+                    <div class="resumen-card">
+                        <div class="resumen-numero" id="total-pendiente-pago">$0</div>
+                        <div class="resumen-label">Pendiente</div>
+                    </div>
+                    <div class="resumen-card">
+                        <div class="resumen-numero" id="total-pagado">$0</div>
+                        <div class="resumen-label">Pagado</div>
+                    </div>
+                    <div class="resumen-card">
+                        <div class="resumen-numero" id="empleados-pendientes">0</div>
+                        <div class="resumen-label">Sin Pagar</div>
+                    </div>
+                </div>
+                
+                <div class="acciones-pago">
+                    <button id="pagar-seleccionados" class="btn-success">💰 Pagar Seleccionados</button>
+                    <button id="pagar-todos" class="btn-warning">💸 Pagar Todos</button>
+                    <button id="generar-reporte-pagos" class="btn-info">📄 Reporte de Pagos</button>
+                </div>
+            </div>
+
+            <!-- Lista de nóminas para pago -->
+            <div class="pagos-container" id="pagos-container">
+                <!-- Se llenará dinámicamente -->
+            </div>
+        </div>
+    </section>
+
+    <!-- Popup para procesar pago individual -->
+    <div id="popup-pago" class="popup oculto">
+        <div class="popup-contenido">
+            <span class="cerrar-popup" id="cerrar-popup-pago">&times;</span>
+            <h3>💳 Procesar Pago</h3>
+            
+            <form id="form-pago">
+                <div class="popup-section">
+                    <h4>👤 Información del Empleado</h4>
+                    <div class="popup-row">
+                        <div class="popup-field">
+                            <label>Empleado:</label>
+                            <input type="text" id="pago-empleado" readonly>
+                        </div>
+                        <div class="popup-field">
+                            <label>Período:</label>
+                            <input type="text" id="pago-periodo" readonly>
+                        </div>
+                    </div>
+                    
+                    <div class="popup-row">
+                        <div class="popup-field">
+                            <label>Cargo:</label>
+                            <input type="text" id="pago-cargo" readonly>
+                        </div>
+                        <div class="popup-field">
+                            <label>Banco:</label>
+                            <input type="text" id="pago-banco" readonly>
+                        </div>
+                    </div>
+                    
+                    <div class="popup-row">
+                        <div class="popup-field">
+                            <label>Cuenta Bancaria:</label>
+                            <input type="text" id="pago-cuenta" readonly>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="popup-section">
+                    <h4>💰 Detalles del Pago</h4>
+                    <div class="pago-detalles">
+                        <div class="detalle-pago">
+                            <span class="detalle-label">Sueldo Base:</span>
+                            <span class="detalle-valor" id="pago-sueldo-base">$0.00</span>
+                        </div>
+                        <div class="detalle-pago">
+                            <span class="detalle-label">Días Feriados:</span>
+                            <span class="detalle-valor" id="pago-dias-feriados">$0.00</span>
+                        </div>
+                        <div class="detalle-pago">
+                            <span class="detalle-label">Bonos:</span>
+                            <span class="detalle-valor" id="pago-bonos">$0.00</span>
+                        </div>
+                        <div class="detalle-pago">
+                            <span class="detalle-label">Comisiones:</span>
+                            <span class="detalle-valor" id="pago-comisiones">$0.00</span>
+                        </div>
+                        <div class="detalle-pago destacado">
+                            <span class="detalle-label">Total Devengado:</span>
+                            <span class="detalle-valor" id="pago-total-devengado">$0.00</span>
+                        </div>
+                        <div class="detalle-pago">
+                            <span class="detalle-label">Seguro Social:</span>
+                            <span class="detalle-valor" id="pago-seguro-social">$0.00</span>
+                        </div>
+                        <div class="detalle-pago">
+                            <span class="detalle-label">LPH:</span>
+                            <span class="detalle-valor" id="pago-lph">$0.00</span>
+                        </div>
+                        <div class="detalle-pago">
+                            <span class="detalle-label">Paro Forzoso:</span>
+                            <span class="detalle-valor" id="pago-paro-forzoso">$0.00</span>
+                        </div>
+                        <div class="detalle-pago">
+                            <span class="detalle-label">Total Deducciones:</span>
+                            <span class="detalle-valor" id="pago-total-deducciones">$0.00</span>
+                        </div>
+                        <div class="detalle-pago final">
+                            <span class="detalle-label">SUELDO NETO:</span>
+                            <span class="detalle-valor" id="pago-sueldo-neto">$0.00</span>
+                        </div>
+                        <div class="detalle-pago utilidades" id="pago-utilidades-section" style="display: none;">
+                            <span class="detalle-label">🎁 UTILIDADES:</span>
+                            <span class="detalle-valor" id="pago-utilidades">$0.00</span>
+                        </div>
+                        <div class="detalle-pago total-final" id="pago-total-final-section" style="display: none;">
+                            <span class="detalle-label">💰 TOTAL A PAGAR:</span>
+                            <span class="detalle-valor" id="pago-total-final">$0.00</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="popup-section">
+                    <h4>📅 Información del Pago</h4>
+                    <div class="popup-row">
+                        <div class="popup-field">
+                            <label for="fecha-pago">Fecha de Pago:</label>
+                            <input type="date" id="fecha-pago" required>
+                        </div>
+                        <div class="popup-field">
+                            <label for="metodo-pago">Método de Pago:</label>
+                            <select id="metodo-pago" required>
+                                <option value="">Seleccionar método</option>
+                                <option value="transferencia">Transferencia Bancaria</option>
+                                <option value="efectivo">Efectivo</option>
+                                <option value="cheque">Cheque</option>
+                                <option value="pago_movil">Pago Móvil</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="popup-row">
+                        <div class="popup-field">
+                            <label for="referencia-pago">Referencia/Número:</label>
+                            <input type="text" id="referencia-pago" placeholder="Número de referencia del pago">
+                        </div>
+                    </div>
+                    
+                    <div class="popup-row">
+                        <div class="popup-field full-width">
+                            <label for="observaciones-pago">Observaciones:</label>
+                            <textarea id="observaciones-pago" rows="3" placeholder="Observaciones del pago..."></textarea>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="popup-buttons">
+                    <button type="submit" class="btn-success">💰 Procesar Pago</button>
+                    <button type="button" id="generar-recibo" class="btn-info">🧾 Generar Recibo</button>
+                    <button type="button" id="cancelar-pago" class="btn-secondary">❌ Cancelar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Popup para pago masivo -->
+    <div id="popup-pago-masivo" class="popup oculto">
+        <div class="popup-contenido">
+            <span class="cerrar-popup" id="cerrar-popup-masivo">&times;</span>
+            <h3>💸 Pago Masivo de Nómina</h3>
+            
+            <div class="pago-masivo-info">
+                <p><strong>Empleados seleccionados:</strong> <span id="empleados-seleccionados-count">0</span></p>
+                <p><strong>Total nómina:</strong> $<span id="total-nomina-masivo">0.00</span></p>
+                <p><strong>Total utilidades:</strong> $<span id="total-utilidades-masivo">0.00</span></p>
+                <p><strong>Total a pagar:</strong> $<span id="total-pago-masivo">0.00</span></p>
+            </div>
+            
+            <form id="form-pago-masivo">
+                <div class="popup-section">
+                    <h4>📅 Información del Pago Masivo</h4>
+                    <div class="popup-row">
+                        <div class="popup-field">
+                            <label for="fecha-pago-masivo">Fecha de Pago:</label>
+                            <input type="date" id="fecha-pago-masivo" required>
+                        </div>
+                        <div class="popup-field">
+                            <label for="metodo-pago-masivo">Método de Pago:</label>
+                            <select id="metodo-pago-masivo" required>
+                                <option value="">Seleccionar método</option>
+                                <option value="transferencia">Transferencia Bancaria</option>
+                                <option value="efectivo">Efectivo</option>
+                                <option value="cheque">Cheque</option>
+                                <option value="pago_movil">Pago Móvil</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="popup-row">
+                        <div class="popup-field full-width">
+                            <label for="observaciones-pago-masivo">Observaciones:</label>
+                            <textarea id="observaciones-pago-masivo" rows="3" placeholder="Observaciones del pago masivo..."></textarea>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="popup-buttons">
+                    <button type="submit" class="btn-success">💰 Procesar Pago Masivo</button>
+                    <button type="button" id="cancelar-pago-masivo" class="btn-secondary">❌ Cancelar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="pagos-nomina.js"></script>
+</body>
+</html>

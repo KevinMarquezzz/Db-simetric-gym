@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Administrar Perfiles</title>
+    <link rel="stylesheet" href="administrar_perfiles.css">
+</head>
+<body>
+    <main>
+        <div class="top">
+            <a href="../login/login.html" class="back_btn">
+              <button><img class="icon" src="../../../assets/arrow_back_left_icon.png" alt="" height="40px" width="40px"></button>
+            </a>
+            </div>  
+        <header>
+            <div class="logo_img">
+                <img src="../../../assets/logo2_simetricG.png" alt="logo" height="100px" width="100px">
+            </div>
+            <div id="title">
+                <h1>Administrar Perfiles</h1>
+            </div>
+        </header>
+
+        <section class="login-section">
+            <table id="tabla-perfiles">
+                <thead>
+                    <tr>
+                        <th>Usuario</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Perfiles se cargarán aquí -->
+                </tbody>
+            </table>
+            <!-- Popup de Clave Maestra -->
+<div id="popup-clave" class="popup">
+    <div class="popup-contenido">
+        <h3>Clave de Seguridad</h3>
+        <p>Ingresa la clave del sistema para eliminar este perfil:</p>
+        <input type="password" id="clave-maestra" placeholder="Clave del sistema">
+        <div class="popup-btn">
+            <button id="btn-cancelar-popup">Cancelar</button>
+            <button id="btn-confirmar-popup">Confirmar</button>
+        </div>
+    </div>
+</div>
+        </section>
+    </main>
+
+    <script src="administrarPerfiles.js"></script>
+</body>
+</html>

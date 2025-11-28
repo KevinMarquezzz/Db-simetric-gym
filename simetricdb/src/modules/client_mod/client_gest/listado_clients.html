@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Listado de clientes</title>
+    <link rel="stylesheet" href="list_cli.css">
+</head>
+<body>
+  <header>
+    <h1 id="mainttl">SIMETRIC GYM</h1>
+    <div class="img"> 
+      <img src="../../../assets/logo2_simetricG.png" height="60px" width="60px" alt="">
+    </div>
+  </header>
+  <a href="../menu_client.html" class="back_btn"> 
+    <button><img class="icon" src="../../../assets/arrow_back_left_icon.png" alt="" height="40px" width="40px"></button>
+  </a>
+  <section id="client-list">
+    <div class="top"> 
+     
+      
+      <div class="list-header">
+        <h2>Listado de Clientes</h2>
+        
+        <div class="filters">
+          <input type="text" id="search-name" placeholder="Buscar por nombre">
+          <input type="text" id="search-cedula" placeholder="Buscar por cédula">
+          <select id="filter-status">
+            <option value="todos">Todos</option>
+            <option value="vigentes">Vigentes</option>
+            <option value="vencidos">Vencidos</option>
+          </select>
+          <select id="filter-membresia">
+            <option value="todos">Todas las membresías</option>
+            <!-- Las opciones se cargarán dinámicamente desde la base de datos -->
+          </select>
+        </div>
+      </div>
+              
+      <div class="list-body" id="client-container">
+      </div>
+    </div>
+  </section>
+     
+  <div id="popup-actualizar" class="popup oculto">
+    <div class="popup-contenido">
+      <span class="cerrar-popup" id="cerrar-popup-actualizar">&times;</span>
+      <h3 id="titulo-actualizar-membresia">Actualizar Membresía</h3>
+      <form id="form-actualizar-membresia">
+        <label>Nuevo tipo de membresía:</label>
+        <select id="nueva_membresia">
+          <!-- Las opciones se cargarán dinámicamente desde la base de datos -->
+        </select>
+        
+        <label>Monto ($):</label>
+        <input type="number" id="monto_dolares" name="monto_dolares" step="0.01" required>
+            
+        <label>Tasa del día:</label>
+        <input type="number" id="tasa_dia" name="tasa_dia" step="0.01" required disabled>
+            
+        <label>Monto en bolívares:</label>
+        <input type="text" id="monto_bs" name="monto_bs" readonly>
+        
+        <label for="metodo_pago">Método de Pago:</label>
+        <select id="metodo_pago" name="metodo_pago" required>
+          <option value="">Seleccionar</option>
+          <option value="efectivo">Efectivo</option>
+          <option value="transferencia">Transferencia</option>
+          <option value="pago_movil">Pago Móvil</option>
+          <option value="tarjeta">Tarjeta</option>
+        </select>
+                  
+        <label>Referencia:</label>
+        <input type="text" id="referencia" name="referencia">
+        
+        <button type="submit">Actualizar</button>
+      </form>
+    </div>
+  </div>
+    
+  <div id="popup-detalles" class="popup oculto">
+    <div class="popup-contenido">
+      <span class="cerrar-popup" id="cerrar-popup">&times;</span>
+      <h3>Detalles del Cliente</h3>
+      <form id="form-editar-cliente">
+        <label>Nombre:</label>
+        <input type="text" id="detalle-nombre" readonly>
+        
+        <label>Apellido:</label>
+        <input type="text" id="detalle-apellido" readonly>
+              
+        <label>Cédula:</label>
+        <input type="text" id="detalle-cedula" readonly>
+              
+        <label>Teléfono:</label>
+        <input type="text" id="detalle-telefono" readonly>
+              
+        <label>Dirección:</label>
+        <input type="text" id="detalle-direccion" readonly>
+        
+        <label>Correo:</label>
+        <input type="text" id="detalle-mail" readonly>
+              
+        <label>Membresía:</label>
+        <input type="text" id="detalle-membresia" readonly>
+              
+        <label>Fecha de Registro:</label>
+        <input type="text" id="detalle-registro" readonly>
+              
+        <label>Fecha de Vencimiento:</label>
+        <span id="detalle-vencimiento"></span>
+        
+        <button type="button" id="btn-historial-pagos">Ver Historial de Pagos</button>
+        <div id="historial-pagos" class="historial-container hidden"></div>
+              
+        <div style="margin-top: 10px;">
+          <button type="button" id="boton-editar-guardar">Editar</button>
+          <button type="button" id="eliminar-cliente">Eliminar</button>
+          <div style="margin-top: 10px;" id="contenedor-boton-actualizar">
+            <!-- Aquí se insertará el botón dinámicamente si aplica -->
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+    
+  <script src="mostrarClientes.js"></script>
+</body>
+</html>

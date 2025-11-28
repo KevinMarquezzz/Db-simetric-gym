@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Opciones y Configuración - SIMETRIC GYM</title>
+    <link rel="stylesheet" href="opciones.css">
+</head>
+<body>
+    <header>
+        <h1 id="mainttl">SIMETRIC GYM</h1>
+        <div class="img">             
+            <img src="../../../assets/logo2_simetricG.png" height="60px" width="60px" alt="">
+        </div>
+    </header>
+    <a href="" class="back_btn">
+        <button><img class="icon" src="../../../assets/arrow_back_left_icon.png" alt="" height="40px" width="40px"></button>
+    </a>   
+    <section id="opciones-section">
+        <div class="top">
+            
+        </div>
+                
+        <div class="opciones-container">
+            <h2>⚙️ Opciones y Configuración</h2>
+            
+            <!-- Configuración de Tasa del Día -->
+            <div class="config-section">
+                <h3>💱 Configuración de Tasa del Día</h3>
+                <div class="config-content">
+                    <div class="form-group">
+                        <label for="tasa_actual">Tasa Actual (Bs/USD):</label>
+                        <input type="number" id="tasa_actual" step="0.01" placeholder="Ej: 36.50">
+                        <button id="guardar_tasa" class="btn-primary">Guardar Tasa</button>
+                    </div>
+                    <div class="info-box">
+                        <p><strong>📌 Nota:</strong> Esta tasa se aplicará automáticamente en todos los módulos del sistema.</p>
+                        <p id="tasa_guardada_info">Tasa guardada: No configurada</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Configuración de Precios de Membresías -->
+            <div class="config-section">
+                <h3>💰 Configuración de Precios de Membresías</h3>
+                <div class="config-content">
+                    <div class="membresias-grid" id="membresias-grid">
+                        <!-- Las membresías se cargarán dinámicamente -->
+                    </div>
+                    
+                    <div class="nueva-membresia-section">
+                        <h4>➕ Agregar Nueva Membresía</h4>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="nuevo_nombre">Nombre del Plan:</label>
+                                <input type="text" id="nuevo_nombre" placeholder="Ej: Plan Premium">
+                            </div>
+                            <div class="form-group">
+                                <label for="nuevo_precio">Precio (USD):</label>
+                                <input type="number" id="nuevo_precio" step="0.01" placeholder="Ej: 50.00">
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="nueva_duracion">Duración (días):</label>
+                                <select id="nueva_duracion">
+                                    <option value="1">1 día</option>
+                                    <option value="7">1 semana</option>
+                                    <option value="30">1 mes</option>
+                                </select>
+                            </div>
+                            
+                        </div>
+                        <button id="agregar_membresia" class="btn-success">Agregar Nueva Membresía</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Información del Sistema -->
+            <div class="config-section">
+                <h3>ℹ️ Información del Sistema</h3>
+                <div class="config-content">
+                    <div class="info-grid">
+                        <div class="info-item">
+                            <strong>📋 Membresías con Inscripción:</strong>
+                            <p>Planes mensuales (30 días) incluyen $5 de inscripción en el registro inicial</p>
+                        </div>
+                        <div class="info-item">
+                            <strong>🔄 Actualizaciones:</strong>
+                            <p>Las actualizaciones de membresía no incluyen costo de inscripción</p>
+                        </div>
+                        <div class="info-item">
+                            <strong>🧾 IVA:</strong>
+                            <p>Todos los precios incluyen IVA del 16%</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+        
+    <script src="opciones.js"></script>
+    
+</body>
+</html>

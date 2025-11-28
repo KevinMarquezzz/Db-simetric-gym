@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión de Registros</title>
+    <link rel="stylesheet" href="modulo_gestiondb.css">
+</head>
+<body>
+    <header>
+        <h1 id="mainttl">SIMETRIC GYM</h1>
+        <div class="img">
+            <img src="../../../assets/logo2_simetricG.png" height="60px" width="60px" alt="">
+        </div>
+    </header>
+    <a href="../indexmain.html" class="back_btn">
+        <button><img class="icon" src="../../../assets/arrow_back_left_icon.png" alt="Volver" height="40px" width="40px"></button>
+      </a>
+    <section id="new-client">
+        <div class="top">
+           
+        </div>
+        <div class="form-container">
+            <h3>🗄️ Gestión de Registros de la Base de Datos</h3>
+            
+            <!-- Estado actual de la base de datos -->
+            <div class="info-card">
+                <h4>📊 Estado Actual del Sistema</h4>
+                <div class="status-grid">
+                    <div class="status-item">
+                        <span class="status-label">Base de Datos:</span>
+                        <span id="db-status" class="status-value">Cargando...</span>
+                    </div>
+                    <div class="status-item">
+                        <span class="status-label">Última Modificación:</span>
+                        <span id="db-modified" class="status-value">Cargando...</span>
+                    </div>
+                    <div class="status-item">
+                        <span class="status-label">Tamaño:</span>
+                        <span id="db-size" class="status-value">Cargando...</span>
+                    </div>
+                    <div class="status-item">
+                        <span class="status-label">Total de Respaldos:</span>
+                        <span id="backup-count" class="status-value">Cargando...</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Acciones principales -->
+            <div class="actions-section">
+                <div class="form-group">
+                    <div class="action-header">
+                        <label for="backup-btn">📥 Crear Respaldo</label>
+                        <p class="action-description">Genera una copia de seguridad completa de todos los datos</p>
+                    </div>
+                    <button id="btn-respaldar">📥 Respaldar</button>
+                </div>
+                
+                <div class="form-group">
+                    <div class="action-header">
+                        <label for="restore-btn">🔄 Restaurar Base de Datos</label>
+                        <p class="action-description">Recupera una versión anterior desde un archivo de respaldo</p>
+                    </div>
+                    <button id="restore-btn">🔄 Recuperar</button>
+                </div>
+            </div>
+
+            <!-- Información de respaldos -->
+            <div class="info-card">
+                <h4>📋 Información de Respaldos</h4>
+                <div class="backup-info">
+                    <div class="backup-item">
+                        <span class="backup-label">Último Respaldo:</span>
+                        <span id="last-backup" class="backup-value">Verificando...</span>
+                    </div>
+                    <div class="backup-item">
+                        <span class="backup-label">Ubicación:</span>
+                        <span class="backup-value">Documentos/SimetricGym_Respaldo</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Información importante -->
+            <div class="warning-section">
+                <h4>⚠️ Información Importante</h4>
+                <div class="warning-grid">
+                    <div class="warning-item">
+                        <strong>🔄 Proceso de Restauración:</strong>
+                        <ul>
+                            <li>Se crea un respaldo automático antes de proceder</li>
+                            <li>La base de datos actual será reemplazada completamente</li>
+                            <li>Se recomienda reiniciar la aplicación después</li>
+                        </ul>
+                    </div>
+                    <div class="warning-item">
+                        <strong>💾 Gestión de Respaldos:</strong>
+                        <ul>
+                            <li>Los respaldos se guardan con fecha y hora</li>
+                            <li>Se mantienen automáticamente los últimos 10</li>
+                            <li>Incluyen todos los datos de clientes y pagos</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Consejos y mejores prácticas -->
+            <div class="tips-section">
+                <h4>💡 Mejores Prácticas</h4>
+                <div class="tips-list">
+                    <div class="tip-item">
+                        <span class="tip-icon">🕒</span>
+                        <span class="tip-text">Crea respaldos regularmente, especialmente antes de cambios importantes</span>
+                    </div>
+                    <div class="tip-item">
+                        <span class="tip-icon">✅</span>
+                        <span class="tip-text">Verifica que los respaldos se crean correctamente revisando la carpeta</span>
+                    </div>
+                    <div class="tip-item">
+                        <span class="tip-icon">🔍</span>
+                        <span class="tip-text">Antes de restaurar, asegúrate de seleccionar el archivo correcto</span>
+                    </div>
+                    <div class="tip-item">
+                        <span class="tip-icon">🔄</span>
+                        <span class="tip-text">Reinicia la aplicación después de una restauración para aplicar cambios</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    <script src="moduloGestionDb.js"></script>
+    <script src="backup.js"></script>
+</body>
+</html>

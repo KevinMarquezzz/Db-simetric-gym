@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Registrar Administradora</title>
+    <link rel="stylesheet" href="registro.css">
+</head>
+<body>
+    <main>
+        <div class="top">
+            <a href="../login/login.html" class="back_btn">
+              <button><img class="icon" src="../../../assets/arrow_back_left_icon.png" alt="" height="20px" width="20px"></button>
+            </a>
+        </div>
+        <header>
+            <div class="logo_img">
+                <img src="../../../assets/logo2_simetricG.png" alt="logo" height="100px" width="100px">
+            </div>
+            <div id="title">
+                <h1>Registrar Administradora</h1>
+            </div>
+        </header>
+        <section class="formulario">
+            <form id="registro-form">
+
+                <div class="input-group">
+                    <label for="usuario">Usuario:</label>
+                    <input type="text" id="usuario" required>
+                </div>
+                  
+                         <label for="clave">Contraseña:</label>
+                      <div class="password-container">
+                        <input type="password" id="clave" required>
+                       <div class="password-requirements" id="password-requirements">
+                        <div class="requirement-title">La contraseña debe contener:</div>
+                        <div class="requirement" id="req-length">
+                            <span class="req-icon">❌</span>
+                            <span class="req-text">Mínimo 8 caracteres</span>
+                        </div>
+                        <div class="requirement" id="req-uppercase">
+                            <span class="req-icon">❌</span>
+                            <span class="req-text">Al menos una letra mayúscula (A-Z)</span>
+                        </div>
+                        <div class="requirement" id="req-number">
+                            <span class="req-icon">❌</span>
+                            <span class="req-text">Al menos un número (0-9)</span>
+                        </div>
+                        <div class="requirement" id="req-special">
+                            <span class="req-icon">❌</span>
+                            <span class="req-text">Al menos un símbolo especial (!@#$%^&*)</span>
+                        </div>
+                    </div>
+                </div>
+           
+                <label for="confirmar">Confirmar Contraseña:</label>
+                <div class="password-container input-group">
+                    <input type="password" id="confirmar" required>
+                    <div class="password-match" id="password-match">
+                        <div class="requirement" id="req-match">
+                            <span class="req-icon">❌</span>
+                            <span class="req-text">Las contraseñas deben coincidir</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="btns">
+                    <button type="submit" id="submit-btn" disabled>Registrar</button>
+                    <button type="reset">Limpiar</button>
+                </div>
+            </form>
+        </section>
+    </main>
+    <script src="registro.js"></script>
+</body>
+</html>

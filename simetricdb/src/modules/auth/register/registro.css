@@ -1,0 +1,202 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: sans-serif;
+}
+
+body {
+  background: linear-gradient(to top, #11111199 50%, #12121299 50%), url(../../../assets/ej_bg3.jpg);
+  background-size: cover;
+  background-position: center;
+  padding: 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+}
+
+.top .back_btn {
+  position: absolute;
+  left: 3%;
+  margin-top: 2rem;
+}
+
+.back_btn button {
+  background: none;
+  border: 2px solid #880808;
+  border-radius: 5px;
+  transition: border-width 0.1s ease, box-shadow 0.1s ease, transform 0.1s ease;
+}
+
+.back_btn button:hover {
+  cursor: pointer;
+  border-width: 3px;
+  box-shadow: 0 0 8px #88080899;
+  transform: scale(1.01);
+}
+
+main {
+  width: 40%;
+  background-color: #121212;
+  border: 3px solid #880808;
+  border-radius: 20px;
+  padding: 10px 20px 20px;
+}
+
+header .logo_img {
+  margin-top: -25px;
+  height: auto;
+  width: auto;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+#title {
+  text-align: center;
+  color: #f2f3d9;
+  font-size: 1rem;
+  margin-bottom: 20px;
+}
+
+form {
+  display: flex;
+  flex-direction: column;
+}
+
+label {
+  color: #f2f3d9;
+  margin-top: 10px;
+  font-weight: bold;
+}
+
+.password-container {
+  position: relative;
+}
+
+input {
+  padding: 10px;
+  margin-top: 5px;
+  width: 100%;
+  background-color: #000;
+  color: #fff;
+  border: 1px solid #880808;
+  border-radius: 5px;
+  transition: border-color 0.3s ease;
+}
+
+input:focus {
+  outline: none;
+  border-color: #ff1c1c;
+  box-shadow: 0 0 5px #88080850;
+}
+
+input.valid {
+  border-color: #4caf50;
+}
+
+input.invalid {
+  border-color: #f44336;
+}
+
+/* Estilos para los requisitos de contraseña */
+.password-requirements,
+.password-match {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background-color: #1a1a1a;
+  border: 1px solid #880808;
+  border-radius: 5px;
+  padding: 10px;
+  margin-top: 5px;
+  z-index: 1000;
+  display: none;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+.password-requirements.show,
+.password-match.show {
+  display: block;
+}
+
+.requirement-title {
+  color: #f2f3d9;
+  font-size: 0.85rem;
+  font-weight: bold;
+  margin-bottom: 8px;
+  border-bottom: 1px solid #880808;
+  padding-bottom: 5px;
+}
+
+.requirement {
+  display: flex;
+  align-items: center;
+  margin-bottom: 5px;
+  padding: 3px 0;
+}
+
+.req-icon {
+  margin-right: 8px;
+  font-size: 0.8rem;
+  width: 16px;
+  text-align: center;
+}
+
+.req-text {
+  color: #cccccc;
+  font-size: 0.8rem;
+  line-height: 1.2;
+}
+
+.requirement.valid .req-icon {
+  color: #4caf50;
+}
+
+.requirement.valid .req-text {
+  color: #4caf50;
+}
+
+.requirement.invalid .req-icon {
+  color: #f44336;
+}
+
+.requirement.invalid .req-text {
+  color: #f44336;
+}
+
+.btns {
+  margin-top: 20px;
+  display: flex;
+  justify-content: space-between;
+}
+
+button {
+  background-color: #000;
+  border: 2px solid #880808;
+  color: #880808;
+  padding: 10px 20px;
+  font-size: 1rem;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+button:hover:not(:disabled) {
+  color: #ff1c1c;
+  border-color: #ff1c1c;
+}
+
+button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  color: #666;
+  border-color: #666;
+}
+
+button:disabled:hover {
+  color: #666;
+  border-color: #666;
+}

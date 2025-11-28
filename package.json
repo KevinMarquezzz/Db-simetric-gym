@@ -2,7 +2,7 @@
   "name": "simetricdb",
   "version": "1.0.0",
   "description": "Sistema de Gestión para Simetric Gym C.A.",
-  "main": "simetricdb/main.js",
+  "main": "simetricdb/src/core/main.js",
   "author": "Kevin Marquez",
   "license": "ISC",
   "scripts": {
@@ -20,7 +20,7 @@
     ],
     "win": {
       "target": "nsis",
-      "icon": "resources/logo2_simetricG.png"
+      "icon": "assets/logo2_simetricG.png"
     }
   },
   "devDependencies": {

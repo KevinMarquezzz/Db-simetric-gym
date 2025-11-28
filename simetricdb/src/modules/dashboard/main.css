@@ -1,0 +1,123 @@
+*{
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: sans-serif;
+}
+
+body{
+    padding: 1.5rem;
+    padding: 0;
+    margin: 0;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    
+}
+/* main.css */
+
+/* No existing code here, so we'll start with the new styles */
+
+.logout-container {
+    position: absolute;
+    left: 0;
+    padding: 1rem;
+  }
+  
+  .logout-container #logout-btn {
+    padding: 10px 15px;
+    background-color: #dc3545; /* Un rojo más oscuro para el botón de salir */
+    color: #f2f3d9;
+    font-weight: bold;
+    font-size: 1rem;
+    border-radius: 5px;
+    border: none;
+    cursor: pointer;
+    transition: 0.3s ease;
+  }
+  
+  .logout-container #logout-btn:hover {
+    background-color: #c82333; /* Un rojo aún más oscuro al pasar el ratón */
+    color: #ffffff;
+  }
+  
+  .logout-container #logout-btn:active {
+    transform: scale(0.95);
+  }
+  
+  /* ** rest of code here ** */
+  
+header{
+    width: 100%;    
+    background-color: #121212;
+    border-bottom: 5px;
+    border-top: 0px;
+    border-left: 0px;
+    border-right: 0px;
+    padding: 10px;
+    padding-top: 20px;
+    padding-bottom: 20px;
+    border-color: #880808;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-style: solid;
+    position: relative;
+}
+header .img{
+    position: absolute;
+    right: 0;
+    padding: 1rem;
+}
+
+header #mainttl{
+    color: #f2f3d9;
+    font-size: 2rem;
+    
+}
+main{
+background: linear-gradient(to top, #11111199 50%, #12121299 50%), url(../../assets/ej_bg3.jpg);
+background-size: cover;
+background-position: center;
+width: 100%;
+display: flex;
+justify-content: center;
+align-items: center;
+flex-grow: 1;
+
+}
+main .btns{
+    display: flex;
+    flex-direction: column;
+}
+main .btns button{
+    padding: 20px;
+    margin: 20px;
+    background-color: #880808;
+    color: #f2f3d9;
+    font-weight: bolder;
+    font-size: 1.5rem;
+    border-radius: 5px;
+    border-style: unset;
+    transition: 0.5s ease;
+    width: 280px;
+}
+.btns button:hover{
+    cursor: pointer;
+    color: #ffffff;
+    background-color: #ff1c1c;
+}
+.btns button:active{
+    transform: scale(0.9);
+}
+.btn-container{
+    display: flex;
+    flex-direction: column;
+}
+.btn-container .btns{
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+    justify-items: center;
+    padding: 20px;
+}
